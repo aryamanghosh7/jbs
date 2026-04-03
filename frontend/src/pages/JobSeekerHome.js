@@ -1,0 +1,364 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import axios from 'axios';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { 
+  Heart, X, Briefcase, ListBullets, ClipboardText, 
+  User, MapPin, Money, Star, SignOut, CheckCircle
+} from '@phosphor-icons/react';
+import { toast } from 'sonner';
+
+const API = process.env.REACT_APP_BACKEND_URL;
+
+function JobCard({ job, onSwipe }) {
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-200, 200], [-15, 15]);
+  const rightOpacity = useTransform(x, [0, 100], [0, 1]);
+  const leftOpacity = useTransform(x, [-100, 0], [1, 0]);
+
+  const handleDragEnd = (_, info) => {
+    if (info.offset.x > 100) {
+      onSwipe('right');
+    } else if (info.offset.x < -100) {
+      onSwipe('left');
+    }
+  };
+
+  const formatSalary = (min, max) => {
+    const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
+    return `$${format(min)} - $${format(max)}`;
+  };
+
+  return (
+    <motion.div
+      className="absolute inset-4 job-card cursor-grab active:cursor-grabbing"
+      style={{ x, rotate }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.9}
+      onDragEnd={handleDragEnd}
+      exit={{ x: x.get() > 0 ? 500 : -500, opacity: 0, transition: { duration: 0.3 } }}
+      data-testid="job-card"
+    >
+      {/* Swipe overlays */}
+      <motion.div className="swipe-overlay-right" style={{ opacity: rightOpacity }}>
+        <div className="w-20 h-20 rounded-full bg-[#A8D5BA] flex items-center justify-center">
+          <Heart size={40} weight="fill" className="text-white" />
+        </div>
+      </motion.div>
+      <motion.div className="swipe-overlay-left" style={{ opacity: leftOpacity }}>
+        <div className="w-20 h-20 rounded-full bg-[#E8A3A3] flex items-center justify-center">
+          <X size={40} weight="bold" className="text-white" />
+        </div>
+      </motion.div>
+
+      {/* Match badge */}
+      <div className="match-badge" data-testid="match-score">
+        <Star size={16} weight="fill" className="text-[#70AF88]" />
+        {job.match_score}% Match
+      </div>
+
+      {/* Card content */}
+      <div className="h-full flex flex-col">
+        <div className="h-[35%] bg-gradient-to-br from-[#A8D5BA] to-[#70AF88] flex items-center justify-center relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-4 left-4 w-32 h-32 rounded-full bg-white/30" />
+            <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-white/20" />
+          </div>
+          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+            <Briefcase size={40} weight="duotone" className="text-white" />
+          </div>
+        </div>
+
+        <div className="flex-1 p-6 flex flex-col">
+          <h2 className="text-xl font-medium text-[#1C2B23] mb-1">{job.title}</h2>
+          <p className="text-[#4A5D53] font-medium mb-3">{job.company_name}</p>
+
+          <div className="flex items-center gap-4 text-sm text-[#7B8E83] mb-4">
+            <span className="flex items-center gap-1">
+              <MapPin size={16} weight="duotone" />
+              {job.city}, {job.state}
+            </span>
+            <span className="flex items-center gap-1">
+              <Money size={16} weight="duotone" />
+              {formatSalary(job.salary_min, job.salary_max)}
+            </span>
+          </div>
+
+          <p className="text-[#4A5D53] text-sm flex-1 line-clamp-3 mb-4">{job.description}</p>
+
+          <div className="flex flex-wrap gap-2">
+            {job.requirements?.bachelor_required && (
+              <span className="px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Bachelor's</span>
+            )}
+            {job.requirements?.master_required && (
+              <span className="px-3 py-1 bg-[#D2B48C]/20 text-[#B08D5E] text-xs font-medium rounded-full">Master's</span>
+            )}
+            {job.requirements?.certification_required && (
+              <span className="px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Certification</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function AllJobsCard({ job, onApply }) {
+  const formatSalary = (min, max) => {
+    const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
+    return `$${format(min)} - $${format(max)}`;
+  };
+
+  return (
+    <div className="job-card p-5 mb-4" data-testid="all-jobs-card">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-medium text-[#1C2B23]">{job.title}</h3>
+          <p className="text-sm text-[#4A5D53]">{job.company_name}</p>
+        </div>
+        <div className="px-2 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full flex items-center gap-1">
+          <Star size={12} weight="fill" />
+          {job.match_score}%
+        </div>
+      </div>
+      <div className="flex items-center gap-3 text-xs text-[#7B8E83] mb-3">
+        <span className="flex items-center gap-1">
+          <MapPin size={14} />
+          {job.city}
+        </span>
+        <span className="flex items-center gap-1">
+          <Money size={14} />
+          {formatSalary(job.salary_min, job.salary_max)}
+        </span>
+      </div>
+      <p className="text-sm text-[#4A5D53] line-clamp-2 mb-4">{job.description}</p>
+      <button
+        onClick={() => onApply(job.id)}
+        className="btn-primary py-3 text-sm"
+        data-testid="apply-btn"
+      >
+        Apply Now
+      </button>
+    </div>
+  );
+}
+
+function ApplicationCard({ app }) {
+  const statusColors = {
+    pending: 'status-pending',
+    shortlisted: 'status-shortlisted',
+  };
+
+  return (
+    <div className="job-card p-5 mb-4" data-testid="application-card">
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="font-medium text-[#1C2B23]">{app.title}</h3>
+          <p className="text-sm text-[#4A5D53]">{app.company_name}</p>
+        </div>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${statusColors[app.status]}`}>
+          {app.status}
+        </span>
+      </div>
+      <p className="text-xs text-[#7B8E83] mt-2">
+        Applied: {new Date(app.applied_at).toLocaleDateString()}
+      </p>
+    </div>
+  );
+}
+
+export default function JobSeekerHome() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('matches');
+  const [matches, setMatches] = useState([]);
+  const [allJobs, setAllJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    fetchData();
+  }, [activeTab]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      if (activeTab === 'matches') {
+        const { data } = await axios.get(`${API}/api/matches`, { withCredentials: true });
+        setMatches(data);
+        setCurrentIndex(0);
+      } else if (activeTab === 'all') {
+        const { data } = await axios.get(`${API}/api/alljobs`, { withCredentials: true });
+        setAllJobs(data);
+      } else {
+        const { data } = await axios.get(`${API}/api/applications`, { withCredentials: true });
+        setApplications(data);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load data');
+    }
+    setLoading(false);
+  };
+
+  const handleSwipe = async (direction) => {
+    const job = matches[currentIndex];
+    if (!job) return;
+
+    try {
+      if (direction === 'right') {
+        await axios.post(`${API}/api/applications/${job.id}`, {}, { withCredentials: true });
+        toast.success('Applied successfully!');
+      } else {
+        await axios.post(`${API}/api/reject/${job.id}`, {}, { withCredentials: true });
+      }
+      setCurrentIndex(prev => prev + 1);
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Action failed');
+    }
+  };
+
+  const handleApply = async (jobId) => {
+    try {
+      await axios.post(`${API}/api/applications/${jobId}`, {}, { withCredentials: true });
+      toast.success('Applied successfully!');
+      fetchData();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to apply');
+    }
+  };
+
+  const currentJob = matches[currentIndex];
+
+  return (
+    <div className="app-wrapper">
+      <div className="mobile-container">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
+          <div>
+            <h1 className="text-xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
+            <p className="text-sm text-[#7B8E83]">Find your dream job</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/resume')}
+              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#A8D5BA]/20 transition-colors"
+              data-testid="profile-btn"
+            >
+              <User size={20} weight="duotone" />
+            </button>
+            <button
+              onClick={logout}
+              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#E8A3A3]/20 transition-colors"
+              data-testid="logout-btn"
+            >
+              <SignOut size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 relative overflow-hidden pb-20">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="spinner" />
+            </div>
+          ) : activeTab === 'matches' ? (
+            <div className="h-full relative">
+              <AnimatePresence>
+                {currentJob && (
+                  <JobCard key={currentJob.id} job={currentJob} onSwipe={handleSwipe} />
+                )}
+              </AnimatePresence>
+              
+              {!currentJob && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                  <div className="w-20 h-20 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
+                    <CheckCircle size={40} weight="duotone" className="text-[#70AF88]" />
+                  </div>
+                  <h3 className="text-lg font-medium text-[#1C2B23] mb-2">All caught up!</h3>
+                  <p className="text-[#7B8E83]">Check back later for new matches</p>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {currentJob && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6">
+                  <button
+                    onClick={() => handleSwipe('left')}
+                    className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center text-[#E8A3A3] active:scale-95 transition-transform"
+                    data-testid="reject-btn"
+                  >
+                    <X size={28} weight="bold" />
+                  </button>
+                  <button
+                    onClick={() => handleSwipe('right')}
+                    className="w-16 h-16 rounded-full bg-[#A8D5BA] shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform"
+                    data-testid="apply-swipe-btn"
+                  >
+                    <Heart size={28} weight="fill" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : activeTab === 'all' ? (
+            <div className="p-6 overflow-y-auto h-full custom-scrollbar">
+              {allJobs.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-[#7B8E83]">No jobs available</p>
+                </div>
+              ) : (
+                allJobs.map(job => (
+                  <AllJobsCard key={job.id} job={job} onApply={handleApply} />
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="p-6 overflow-y-auto h-full custom-scrollbar">
+              {applications.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-[#7B8E83]">No applications yet</p>
+                </div>
+              ) : (
+                applications.map(app => (
+                  <ApplicationCard key={app.id} app={app} />
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom nav */}
+        <div className="bottom-nav">
+          <button
+            onClick={() => setActiveTab('matches')}
+            className={`nav-item ${activeTab === 'matches' ? 'active' : ''}`}
+            data-testid="nav-matches"
+          >
+            <Heart size={24} weight={activeTab === 'matches' ? 'duotone' : 'regular'} />
+            <span className="text-xs font-medium">Matches</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
+            data-testid="nav-all-jobs"
+          >
+            <ListBullets size={24} weight={activeTab === 'all' ? 'duotone' : 'regular'} />
+            <span className="text-xs font-medium">All Jobs</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('applications')}
+            className={`nav-item ${activeTab === 'applications' ? 'active' : ''}`}
+            data-testid="nav-applications"
+          >
+            <ClipboardText size={24} weight={activeTab === 'applications' ? 'duotone' : 'regular'} />
+            <span className="text-xs font-medium">Applied</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
