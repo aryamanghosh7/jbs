@@ -9,10 +9,10 @@ class JobswishAPITester:
         self.session = requests.Session()
         self.tests_run = 0
         self.tests_passed = 0
-        self.admin_user = None
-        self.job_seeker_user = None
-        self.recruiter_user = None
-        self.test_job_id = None
+        self.admin_user_id = None
+        self.job_seeker_user_id = None
+        self.job_id = None
+        self.application_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, cookies=None):
         """Run a single API test"""
@@ -29,8 +29,6 @@ class JobswishAPITester:
                 response = self.session.post(url, json=data, headers=headers)
             elif method == 'PUT':
                 response = self.session.put(url, json=data, headers=headers)
-            elif method == 'DELETE':
-                response = self.session.delete(url, headers=headers)
 
             success = response.status_code == expected_status
             if success:
@@ -43,8 +41,7 @@ class JobswishAPITester:
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
                 try:
-                    error_detail = response.json()
-                    print(f"   Error: {error_detail}")
+                    print(f"   Response: {response.json()}")
                 except:
                     print(f"   Response: {response.text}")
                 return False, {}
@@ -54,7 +51,7 @@ class JobswishAPITester:
             return False, {}
 
     def test_admin_login(self):
-        """Test admin login"""
+        """Test admin login with provided credentials"""
         success, response = self.run_test(
             "Admin Login",
             "POST",
@@ -62,426 +59,331 @@ class JobswishAPITester:
             200,
             data={"email": "admin@jobswish.com", "password": "admin123"}
         )
-        if success:
-            self.admin_user = response
+        if success and 'id' in response:
+            self.admin_user_id = response['id']
+            print(f"   Admin user ID: {self.admin_user_id}")
             return True
         return False
 
-    def test_register_job_seeker(self):
+    def test_job_seeker_registration(self):
         """Test job seeker registration"""
         timestamp = datetime.now().strftime('%H%M%S')
+        email = f"jobseeker_{timestamp}@test.com"
+        
         success, response = self.run_test(
-            "Register Job Seeker",
+            "Job Seeker Registration",
             "POST",
             "auth/register",
             200,
             data={
-                "email": f"jobseeker_{timestamp}@test.com",
-                "password": "TestPass123!",
-                "name": f"Job Seeker {timestamp}",
+                "email": email,
+                "password": "testpass123",
+                "name": f"Test JobSeeker {timestamp}",
                 "role": "job_seeker"
             }
         )
-        if success:
-            self.job_seeker_user = response
-            return True
-        return False
-
-    def test_register_recruiter(self):
-        """Test recruiter registration"""
-        timestamp = datetime.now().strftime('%H%M%S')
-        success, response = self.run_test(
-            "Register Recruiter",
-            "POST",
-            "auth/register",
-            200,
-            data={
-                "email": f"recruiter_{timestamp}@test.com",
-                "password": "TestPass123!",
-                "name": f"Recruiter {timestamp}",
-                "role": "recruiter"
-            }
-        )
-        if success:
-            self.recruiter_user = response
-            return True
-        return False
-
-    def test_auth_me(self):
-        """Test get current user"""
-        success, _ = self.run_test(
-            "Get Current User",
-            "GET",
-            "auth/me",
-            200
-        )
-        return success
-
-    def test_logout(self):
-        """Test logout"""
-        success, _ = self.run_test(
-            "Logout",
-            "POST",
-            "auth/logout",
-            200
-        )
-        return success
-
-    def test_create_job(self):
-        """Test job creation (as recruiter)"""
-        if not self.recruiter_user:
-            print("❌ No recruiter user available for job creation")
-            return False
-            
-        success, response = self.run_test(
-            "Create Job",
-            "POST",
-            "jobs",
-            200,
-            data={
-                "title": "Senior Software Engineer",
-                "company_name": "Test Tech Corp",
-                "salary_min": 80000,
-                "salary_max": 120000,
-                "description": "We are looking for a senior software engineer to join our team.",
-                "short_note": "Great opportunity for growth",
-                "country": "USA",
-                "state": "California",
-                "city": "San Francisco",
-                "requirements": {
-                    "bachelor_required": True,
-                    "master_required": False,
-                    "certification_required": False,
-                    "notes": "5+ years experience required"
-                }
-            }
-        )
         if success and 'id' in response:
-            self.test_job_id = response['id']
+            self.job_seeker_user_id = response['id']
+            print(f"   Job seeker user ID: {self.job_seeker_user_id}")
             return True
         return False
 
-    def test_get_jobs(self):
-        """Test get all jobs"""
+    def test_job_seeker_profile_creation(self):
+        """Test job seeker profile with email, phone, github fields"""
         success, response = self.run_test(
-            "Get All Jobs",
-            "GET",
-            "jobs",
-            200
-        )
-        return success
-
-    def test_get_recruiter_jobs(self):
-        """Test get recruiter's jobs"""
-        success, response = self.run_test(
-            "Get Recruiter Jobs",
-            "GET",
-            "jobs/recruiter",
-            200
-        )
-        return success
-
-    def test_update_profile(self):
-        """Test profile update (as job seeker)"""
-        success, _ = self.run_test(
-            "Update Profile",
+            "Job Seeker Profile Creation",
             "PUT",
             "profile",
             200,
             data={
-                "email": "jobseeker@test.com",  # Contact email
-                "phone": "+1-555-123-4567",    # Phone/WhatsApp number
-                "education": {
-                    "has_bachelors": True,
-                    "has_masters": False
-                },
-                "certifications": [],
-                "experience": {
-                    "years": 3,
-                    "companies": [{"name": "Test Corp", "role": "Developer"}]
-                },
-                "skills": "Python, JavaScript, React, FastAPI",
-                "projects": "Built several web applications using modern frameworks",
-                "location": {
-                    "country": "USA",
-                    "state": "California", 
-                    "city": "San Francisco",
-                    "show_only_city_jobs": False
-                }
+                "email": "jobseeker@example.com",
+                "phone": "+1234567890",
+                "github": "https://github.com/testuser",
+                "skills": "Python, JavaScript, React, Node.js",
+                "experience": {"years": 3, "companies": [{"name": "TechCorp", "role": "Developer"}]},
+                "education": {"has_bachelors": True, "has_masters": False},
+                "location": {"country": "USA", "state": "CA", "city": "San Francisco"}
             }
         )
         return success
 
     def test_get_profile(self):
-        """Test get profile"""
-        success, _ = self.run_test(
-            "Get Profile",
+        """Test getting job seeker profile"""
+        success, response = self.run_test(
+            "Get Job Seeker Profile",
             "GET",
             "profile",
             200
         )
-        return success
+        if success:
+            # Verify required fields are present
+            if 'email' in response and 'phone' in response and 'github' in response:
+                print(f"   Profile fields verified: email, phone, github present")
+                return True
+            else:
+                print(f"   Missing required profile fields")
+        return False
 
-    def test_get_matches(self):
-        """Test get job matches"""
-        success, _ = self.run_test(
+    def test_recruiter_job_posting(self):
+        """Test recruiter can post a new job"""
+        # First login as admin (recruiter)
+        if not self.test_admin_login():
+            return False
+            
+        success, response = self.run_test(
+            "Recruiter Job Posting",
+            "POST",
+            "jobs",
+            200,
+            data={
+                "title": "Senior Python Developer",
+                "company_name": "TechCorp Inc",
+                "salary_min": 80000,
+                "salary_max": 120000,
+                "description": "We are looking for a senior Python developer with experience in web development.",
+                "short_note": "Great opportunity for growth",
+                "country": "USA",
+                "state": "CA", 
+                "city": "San Francisco",
+                "requirements": {
+                    "bachelor_required": True,
+                    "master_required": False,
+                    "certification_required": False,
+                    "notes": "Python, Django, REST APIs"
+                }
+            }
+        )
+        if success and 'id' in response:
+            self.job_id = response['id']
+            print(f"   Job ID: {self.job_id}")
+            return True
+        return False
+
+    def test_job_seeker_matches(self):
+        """Test job seeker can see matches after profile complete"""
+        # Login as job seeker
+        timestamp = datetime.now().strftime('%H%M%S')
+        email = f"jobseeker_{timestamp}@test.com"
+        
+        # Register and login job seeker
+        reg_success, reg_response = self.run_test(
+            "Job Seeker Registration for Matches",
+            "POST", 
+            "auth/register",
+            200,
+            data={
+                "email": email,
+                "password": "testpass123",
+                "name": f"Test JobSeeker {timestamp}",
+                "role": "job_seeker"
+            }
+        )
+        
+        if not reg_success:
+            return False
+            
+        # Create profile with skills
+        profile_success, _ = self.run_test(
+            "Create Profile for Matches",
+            "PUT",
+            "profile", 
+            200,
+            data={
+                "email": email,
+                "skills": "Python, Django, REST APIs",
+                "experience": {"years": 2, "companies": []},
+                "education": {"has_bachelors": True, "has_masters": False}
+            }
+        )
+        
+        if not profile_success:
+            return False
+            
+        # Test matches endpoint
+        success, response = self.run_test(
             "Get Job Matches",
             "GET",
             "matches",
             200
         )
-        return success
+        
+        if success:
+            print(f"   Found {len(response)} matches")
+            return True
+        return False
 
-    def test_apply_to_job(self):
-        """Test job application"""
-        if not self.test_job_id:
-            print("❌ No test job available for application")
+    def test_job_application(self):
+        """Test job seeker can apply to a job"""
+        if not self.job_id:
+            print("   No job ID available for application test")
             return False
             
-        success, _ = self.run_test(
-            "Apply to Job",
+        success, response = self.run_test(
+            "Job Application",
             "POST",
-            f"applications/{self.test_job_id}",
+            f"applications/{self.job_id}",
             200
-        )
-        return success
-
-    def test_get_applications(self):
-        """Test get user applications"""
-        success, _ = self.run_test(
-            "Get Applications",
-            "GET",
-            "applications",
-            200
-        )
-        return success
-
-    def test_get_job_applicants(self):
-        """Test get job applicants (as recruiter)"""
-        if not self.test_job_id:
-            print("❌ No test job available")
-            return False
-            
-        success, response = self.run_test(
-            "Get Job Applicants",
-            "GET",
-            f"jobs/{self.test_job_id}/applicants",
-            200
-        )
-        
-        # Verify applicant data includes contact info
-        if success and response:
-            for applicant in response:
-                profile = applicant.get('profile', {})
-                if profile.get('email') and profile.get('phone'):
-                    print(f"✅ Contact info found: {profile.get('email')}, {profile.get('phone')}")
-                else:
-                    print(f"⚠️  Contact info missing for applicant {applicant.get('name')}")
-        
-        return success
-
-    def test_shortlist_applicant(self):
-        """Test shortlisting an applicant"""
-        if not self.test_job_id:
-            print("❌ No test job available")
-            return False
-        
-        # First get applicants to find an application ID
-        success, response = self.run_test(
-            "Get Applicants for Shortlist",
-            "GET",
-            f"jobs/{self.test_job_id}/applicants",
-            200
-        )
-        
-        if not success or not response:
-            print("❌ No applicants found to shortlist")
-            return False
-        
-        # Get the first applicant's ID
-        app_id = response[0].get('application_id')
-        if not app_id:
-            print("❌ No application ID found")
-            return False
-        
-        # Shortlist the applicant
-        success, _ = self.run_test(
-            "Shortlist Applicant",
-            "PUT",
-            f"applications/{app_id}/action",
-            200,
-            data={"action": "shortlist"}
         )
         
         if success:
-            # Verify shortlisted candidates endpoint
-            success2, shortlist_response = self.run_test(
-                "Get Shortlisted Candidates",
-                "GET",
-                f"jobs/{self.test_job_id}/shortlist",
-                200
-            )
-            
-            if success2 and shortlist_response:
-                print(f"✅ Found {len(shortlist_response)} shortlisted candidates")
-                # Check if contact info is present
-                for candidate in shortlist_response:
-                    profile = candidate.get('profile', {})
-                    if profile.get('email') and profile.get('phone'):
-                        print(f"✅ Shortlisted candidate has contact info: {profile.get('email')}, {profile.get('phone')}")
-                    else:
-                        print(f"⚠️  Shortlisted candidate missing contact info")
-            
-            return success2
-        
-        return success
+            print(f"   Application successful")
+            return True
+        return False
 
-    def test_reject_job(self):
-        """Test job rejection"""
-        if not self.test_job_id:
-            print("❌ No test job available for rejection")
+    def test_recruiter_view_applicants(self):
+        """Test recruiter can view applicants"""
+        # Login as admin (recruiter)
+        if not self.test_admin_login():
             return False
             
-        success, _ = self.run_test(
-            "Reject Job",
-            "POST",
-            f"reject/{self.test_job_id}",
+        if not self.job_id:
+            print("   No job ID available for viewing applicants")
+            return False
+            
+        success, response = self.run_test(
+            "View Job Applicants",
+            "GET",
+            f"jobs/{self.job_id}/applicants",
             200
+        )
+        
+        if success:
+            print(f"   Found {len(response)} applicants")
+            if len(response) > 0:
+                self.application_id = response[0].get('application_id')
+                print(f"   Application ID: {self.application_id}")
+            return True
+        return False
+
+    def test_recruiter_shortlist_applicant(self):
+        """Test recruiter can shortlist an applicant"""
+        if not self.application_id:
+            print("   No application ID available for shortlisting")
+            return False
+            
+        success, response = self.run_test(
+            "Shortlist Applicant",
+            "PUT",
+            f"applications/{self.application_id}/action",
+            200,
+            data={"action": "shortlist"}
         )
         return success
 
+    def test_recruiter_reject_applicant(self):
+        """Test recruiter can reject an applicant (should update status, not delete)"""
+        if not self.application_id:
+            print("   No application ID available for rejection")
+            return False
+            
+        success, response = self.run_test(
+            "Reject Applicant",
+            "PUT", 
+            f"applications/{self.application_id}/action",
+            200,
+            data={"action": "reject"}
+        )
+        return success
+
+    def test_insights_status(self):
+        """Test insights tab shows rejection count"""
+        # Login as job seeker first
+        timestamp = datetime.now().strftime('%H%M%S')
+        email = f"jobseeker_{timestamp}@test.com"
+        
+        reg_success, _ = self.run_test(
+            "Job Seeker Registration for Insights",
+            "POST",
+            "auth/register", 
+            200,
+            data={
+                "email": email,
+                "password": "testpass123",
+                "name": f"Test JobSeeker {timestamp}",
+                "role": "job_seeker"
+            }
+        )
+        
+        if not reg_success:
+            return False
+            
+        success, response = self.run_test(
+            "Get Insights Status",
+            "GET",
+            "insights/status",
+            200
+        )
+        
+        if success and 'rejection_count' in response:
+            print(f"   Rejection count: {response['rejection_count']}")
+            print(f"   Eligible for insights: {response.get('eligible', False)}")
+            return True
+        return False
+
+    def test_auth_endpoints(self):
+        """Test basic auth endpoints"""
+        # Test /auth/me endpoint
+        success, response = self.run_test(
+            "Get Current User",
+            "GET",
+            "auth/me",
+            200
+        )
+        
+        if success:
+            print(f"   Current user: {response.get('email', 'Unknown')}")
+            
+        # Test logout
+        logout_success, _ = self.run_test(
+            "Logout",
+            "POST",
+            "auth/logout",
+            200
+        )
+        
+        return success and logout_success
+
 def main():
-    print("🚀 Starting Jobswish API Tests...")
+    print("🚀 Starting Jobswish API Testing...")
+    print("=" * 50)
+    
     tester = JobswishAPITester()
-
-    # Test authentication flows
-    print("\n" + "="*50)
-    print("TESTING AUTHENTICATION")
-    print("="*50)
     
-    if not tester.test_admin_login():
-        print("❌ Admin login failed, stopping tests")
+    # Test sequence following the review request requirements
+    tests = [
+        ("Admin Login", tester.test_admin_login),
+        ("Recruiter Job Posting", tester.test_recruiter_job_posting),
+        ("Job Seeker Registration", tester.test_job_seeker_registration),
+        ("Job Seeker Profile Creation", tester.test_job_seeker_profile_creation),
+        ("Get Job Seeker Profile", tester.test_get_profile),
+        ("Job Seeker Matches", tester.test_job_seeker_matches),
+        ("Job Application", tester.test_job_application),
+        ("Recruiter View Applicants", tester.test_recruiter_view_applicants),
+        ("Recruiter Shortlist Applicant", tester.test_recruiter_shortlist_applicant),
+        ("Recruiter Reject Applicant", tester.test_recruiter_reject_applicant),
+        ("Insights Status", tester.test_insights_status),
+        ("Auth Endpoints", tester.test_auth_endpoints)
+    ]
+    
+    failed_tests = []
+    
+    for test_name, test_func in tests:
+        try:
+            if not test_func():
+                failed_tests.append(test_name)
+        except Exception as e:
+            print(f"❌ {test_name} failed with exception: {str(e)}")
+            failed_tests.append(test_name)
+    
+    print("\n" + "=" * 50)
+    print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} passed")
+    
+    if failed_tests:
+        print(f"❌ Failed tests: {', '.join(failed_tests)}")
         return 1
-    
-    if not tester.test_auth_me():
-        print("❌ Auth me failed")
-        return 1
-    
-    if not tester.test_logout():
-        print("❌ Logout failed")
-        return 1
-
-    # Test registration
-    if not tester.test_register_job_seeker():
-        print("❌ Job seeker registration failed")
-        return 1
-    
-    if not tester.test_logout():
-        print("❌ Logout after job seeker registration failed")
-        return 1
-    
-    if not tester.test_register_recruiter():
-        print("❌ Recruiter registration failed")
-        return 1
-
-    # Test recruiter functionality
-    print("\n" + "="*50)
-    print("TESTING RECRUITER FUNCTIONALITY")
-    print("="*50)
-    
-    if not tester.test_create_job():
-        print("❌ Job creation failed")
-        return 1
-    
-    if not tester.test_get_recruiter_jobs():
-        print("❌ Get recruiter jobs failed")
-        return 1
-    
-    if not tester.test_get_jobs():
-        print("❌ Get all jobs failed")
-        return 1
-
-    # Switch to job seeker
-    print("\n" + "="*50)
-    print("TESTING JOB SEEKER FUNCTIONALITY")
-    print("="*50)
-    
-    # Login as job seeker
-    if tester.job_seeker_user:
-        success, _ = tester.run_test(
-            "Job Seeker Login",
-            "POST",
-            "auth/login",
-            200,
-            data={
-                "email": tester.job_seeker_user['email'],
-                "password": "TestPass123!"
-            }
-        )
-        if not success:
-            print("❌ Job seeker login failed")
-            return 1
-    
-    if not tester.test_update_profile():
-        print("❌ Profile update failed")
-        return 1
-    
-    if not tester.test_get_profile():
-        print("❌ Get profile failed")
-        return 1
-    
-    if not tester.test_get_matches():
-        print("❌ Get matches failed")
-        return 1
-    
-    if not tester.test_apply_to_job():
-        print("❌ Job application failed")
-        return 1
-    
-    if not tester.test_get_applications():
-        print("❌ Get applications failed")
-        return 1
-
-    # Switch back to recruiter for applicant management
-    print("\n" + "="*50)
-    print("TESTING APPLICANT MANAGEMENT")
-    print("="*50)
-    
-    if tester.recruiter_user:
-        success, _ = tester.run_test(
-            "Recruiter Login",
-            "POST",
-            "auth/login",
-            200,
-            data={
-                "email": tester.recruiter_user['email'],
-                "password": "TestPass123!"
-            }
-        )
-        if not success:
-            print("❌ Recruiter login failed")
-            return 1
-    
-    if not tester.test_get_job_applicants():
-        print("❌ Get job applicants failed")
-        return 1
-    
-    if not tester.test_shortlist_applicant():
-        print("❌ Shortlist applicant failed")
-        return 1
-
-    # Print final results
-    print("\n" + "="*50)
-    print("TEST RESULTS")
-    print("="*50)
-    print(f"📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
-    
-    if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed!")
-        return 0
     else:
-        print(f"❌ {tester.tests_run - tester.tests_passed} tests failed")
-        return 1
+        print("✅ All tests passed!")
+        return 0
 
 if __name__ == "__main__":
     sys.exit(main())
