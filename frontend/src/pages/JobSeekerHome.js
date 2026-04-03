@@ -5,7 +5,8 @@ import axios from 'axios';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { 
   Heart, X, Briefcase, ListBullets, ClipboardText, 
-  User, MapPin, Money, Star, SignOut, CheckCircle, NotePencil
+  User, MapPin, Money, Star, SignOut, CheckCircle, NotePencil,
+  Lightbulb, ArrowClockwise, Lock
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
@@ -183,6 +184,141 @@ function ApplicationCard({ app }) {
   );
 }
 
+function InsightsTab() {
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [status, setStatus] = useState(null);
+
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const fetchStatus = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`${API}/api/insights/status`, { withCredentials: true });
+      setStatus(data);
+    } catch (e) {
+      console.error(e);
+      toast.error('Failed to load insights status');
+    }
+    setLoading(false);
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data } = await axios.post(`${API}/api/insights/generate`, {}, { withCredentials: true });
+      setStatus(prev => ({
+        ...prev,
+        has_cached: true,
+        cached_insight: data.insight,
+        generated_at: data.generated_at,
+        can_regenerate: false
+      }));
+      toast.success(data.from_cache ? 'Loaded cached insights' : 'Insights generated!');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to generate insights');
+    }
+    setGenerating(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="spinner" />
+      </div>
+    );
+  }
+
+  // Not enough rejections
+  if (!status?.eligible) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+        <div className="w-20 h-20 rounded-full bg-[#D2B48C]/20 flex items-center justify-center mb-4">
+          <Lock size={40} weight="duotone" className="text-[#B08D5E]" />
+        </div>
+        <h3 className="text-lg font-medium text-[#1C2B23] mb-2">Insights Locked</h3>
+        <p className="text-[#7B8E83] mb-2">
+          Get rejected from at least <span className="font-semibold text-[#1C2B23]">5 jobs</span> to unlock insights
+        </p>
+        <p className="text-sm text-[#7B8E83]">
+          Current rejections: <span className="font-semibold">{status?.rejection_count || 0}</span>
+        </p>
+      </div>
+    );
+  }
+
+  // Has cached insight
+  if (status?.has_cached && status?.cached_insight) {
+    return (
+      <div className="p-6 overflow-y-auto h-full custom-scrollbar">
+        <div className="job-card p-6 mb-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb size={24} weight="duotone" className="text-[#70AF88]" />
+            <h3 className="text-lg font-medium text-[#1C2B23]">Your Rejection Insights</h3>
+          </div>
+          
+          <div className="bg-[#FAFAFA] rounded-xl p-4 mb-4 whitespace-pre-wrap text-sm text-[#4A5D53] leading-relaxed">
+            {status.cached_insight}
+          </div>
+
+          {status.generated_at && (
+            <p className="text-xs text-[#7B8E83] mb-4">
+              Generated: {new Date(status.generated_at).toLocaleString()}
+            </p>
+          )}
+
+          <button
+            onClick={handleGenerate}
+            disabled={!status.can_regenerate || generating}
+            className={`w-full py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-all ${
+              status.can_regenerate && !generating
+                ? 'bg-[#A8D5BA] text-[#112217] hover:bg-[#8BC2A1]'
+                : 'bg-[#E8E6DF] text-[#7B8E83] cursor-not-allowed'
+            }`}
+            data-testid="regenerate-insights-btn"
+          >
+            <ArrowClockwise size={18} className={generating ? 'animate-spin' : ''} />
+            {generating ? 'Regenerating...' : status.can_regenerate ? 'Regenerate Insights' : 'Available in 24h'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Eligible but no insight yet
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+      <div className="w-20 h-20 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
+        <Lightbulb size={40} weight="duotone" className="text-[#70AF88]" />
+      </div>
+      <h3 className="text-lg font-medium text-[#1C2B23] mb-2">Ready for Insights</h3>
+      <p className="text-[#7B8E83] mb-6 max-w-sm">
+        Discover why you might be getting rejected and how to improve your profile based on AI analysis.
+      </p>
+      <button
+        onClick={handleGenerate}
+        disabled={generating}
+        className="btn-primary max-w-xs flex items-center justify-center gap-2"
+        data-testid="analyze-profile-btn"
+      >
+        {generating ? (
+          <>
+            <div className="w-5 h-5 border-2 border-[#112217]/30 border-t-[#112217] rounded-full animate-spin" />
+            Analyzing...
+          </>
+        ) : (
+          <>
+            <Lightbulb size={20} weight="duotone" />
+            Analyze My Profile
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 export default function JobSeekerHome() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -200,7 +336,7 @@ export default function JobSeekerHome() {
   }, []);
 
   useEffect(() => {
-    if (profileChecked && isProfileComplete(profile)) {
+    if (profileChecked && isProfileComplete(profile) && activeTab !== 'insights') {
       fetchData();
     }
   }, [activeTab, profileChecked, profile]);
@@ -229,7 +365,7 @@ export default function JobSeekerHome() {
         ]);
         setAllJobs(jobsRes.data);
         setAppliedJobIds(new Set(appsRes.data.map(a => a.job_id)));
-      } else {
+      } else if (activeTab === 'applications') {
         const { data } = await axios.get(`${API}/api/applications`, { withCredentials: true });
         setApplications(data);
       }
@@ -353,7 +489,9 @@ export default function JobSeekerHome() {
 
         {/* Content */}
         <div className="flex-1 relative overflow-hidden pb-20">
-          {loading ? (
+          {activeTab === 'insights' ? (
+            <InsightsTab />
+          ) : loading ? (
             <div className="flex items-center justify-center h-full">
               <div className="spinner" />
             </div>
@@ -434,24 +572,32 @@ export default function JobSeekerHome() {
             className={`nav-item ${activeTab === 'matches' ? 'active' : ''}`}
             data-testid="nav-matches"
           >
-            <Heart size={24} weight={activeTab === 'matches' ? 'duotone' : 'regular'} />
-            <span className="text-xs font-medium">Matches</span>
+            <Heart size={22} weight={activeTab === 'matches' ? 'duotone' : 'regular'} />
+            <span className="text-[10px] font-medium">Matches</span>
           </button>
           <button
             onClick={() => setActiveTab('all')}
             className={`nav-item ${activeTab === 'all' ? 'active' : ''}`}
             data-testid="nav-all-jobs"
           >
-            <ListBullets size={24} weight={activeTab === 'all' ? 'duotone' : 'regular'} />
-            <span className="text-xs font-medium">All Jobs</span>
+            <ListBullets size={22} weight={activeTab === 'all' ? 'duotone' : 'regular'} />
+            <span className="text-[10px] font-medium">All Jobs</span>
           </button>
           <button
             onClick={() => setActiveTab('applications')}
             className={`nav-item ${activeTab === 'applications' ? 'active' : ''}`}
             data-testid="nav-applications"
           >
-            <ClipboardText size={24} weight={activeTab === 'applications' ? 'duotone' : 'regular'} />
-            <span className="text-xs font-medium">Applied</span>
+            <ClipboardText size={22} weight={activeTab === 'applications' ? 'duotone' : 'regular'} />
+            <span className="text-[10px] font-medium">Applied</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('insights')}
+            className={`nav-item ${activeTab === 'insights' ? 'active' : ''}`}
+            data-testid="nav-insights"
+          >
+            <Lightbulb size={22} weight={activeTab === 'insights' ? 'duotone' : 'regular'} />
+            <span className="text-[10px] font-medium">Insights</span>
           </button>
         </div>
       </div>

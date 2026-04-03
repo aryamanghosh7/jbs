@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   ArrowLeft, GraduationCap, Certificate, Briefcase, 
-  MapPin, Code, Plus, X, Upload, Check, Phone, Envelope
+  MapPin, Code, Plus, X, Upload, Check, Phone, Envelope, GithubLogo
 } from '@phosphor-icons/react';
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ export default function ResumeBuilder() {
   // Contact Info
   const [contactEmail, setContactEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [github, setGithub] = useState('');
 
   // Education
   const [hasBachelors, setHasBachelors] = useState(false);
@@ -52,6 +53,7 @@ export default function ResumeBuilder() {
       if (data) {
         setContactEmail(data.email || '');
         setPhone(data.phone || '');
+        setGithub(data.github || '');
         setHasBachelors(data.education?.has_bachelors || false);
         setBachelorsDocs(data.education?.bachelors_doc || null);
         setHasMasters(data.education?.has_masters || false);
@@ -119,8 +121,8 @@ export default function ResumeBuilder() {
   };
 
   const handleSave = async () => {
-    if (!contactEmail || !phone) {
-      toast.error('Please fill in your email and phone number');
+    if (!contactEmail) {
+      toast.error('Please fill in your email address');
       return;
     }
     if (!skills.trim()) {
@@ -133,6 +135,7 @@ export default function ResumeBuilder() {
       await axios.put(`${API}/api/profile`, {
         email: contactEmail,
         phone,
+        github,
         education: {
           has_bachelors: hasBachelors,
           bachelors_doc: bachelorsDocs,
@@ -198,7 +201,7 @@ export default function ResumeBuilder() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
-                  Email Address *
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <Envelope size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7B8E83]" />
@@ -216,7 +219,7 @@ export default function ResumeBuilder() {
 
               <div>
                 <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
-                  Phone / WhatsApp Number *
+                  Phone / WhatsApp Number <span className="text-[#7B8E83]">(optional)</span>
                 </label>
                 <div className="relative">
                   <Phone size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7B8E83]" />
@@ -226,11 +229,27 @@ export default function ResumeBuilder() {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+1 234 567 8900"
                     className="input-field pl-12"
-                    required
                     data-testid="phone-input"
                   />
                 </div>
                 <p className="text-xs text-[#7B8E83] mt-1 ml-1">Include country code for WhatsApp</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
+                  GitHub Profile <span className="text-[#7B8E83]">(optional)</span>
+                </label>
+                <div className="relative">
+                  <GithubLogo size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7B8E83]" />
+                  <input
+                    type="url"
+                    value={github}
+                    onChange={(e) => setGithub(e.target.value)}
+                    placeholder="https://github.com/yourusername"
+                    className="input-field pl-12"
+                    data-testid="github-input"
+                  />
+                </div>
               </div>
             </div>
           </section>
@@ -418,7 +437,9 @@ export default function ResumeBuilder() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Skills * (required for matching)</label>
+                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
+                  Skills <span className="text-red-500">*</span> <span className="text-[#7B8E83]">(required for matching)</span>
+                </label>
                 <textarea
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}

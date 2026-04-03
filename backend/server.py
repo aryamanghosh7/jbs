@@ -101,8 +101,9 @@ class ProfileLocation(BaseModel):
     show_only_city_jobs: bool = False
 
 class ProfileCreate(BaseModel):
-    email: str = ""  # Contact email
-    phone: str = ""  # Phone/WhatsApp number
+    email: str = ""  # Contact email - required
+    phone: str = ""  # Phone/WhatsApp number - optional
+    github: str = ""  # GitHub profile link - optional
     education: ProfileEducation = ProfileEducation()
     certifications: List[str] = []  # base64 images
     experience: ProfileExperience = ProfileExperience()
@@ -752,6 +753,200 @@ async def ai_shortlist(job_id: str, user: dict = Depends(get_current_user)):
         await db.applications.update_one({"_id": app["_id"]}, {"$set": {"status": "shortlisted"}})
     
     return {"message": f"Shortlisted {top_count} candidates", "count": top_count}
+
+# Insights AI Feature
+async def call_mistral_api(prompt: str) -> str:
+    """Call Mistral API via NVIDIA NIM for text generation"""
+    api_key = os.environ.get("MISTRAL_API_KEY")
+    if not api_key:
+        return "AI service not configured"
+    
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "mistralai/mistral-large-2-instruct",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 150,
+        "temperature": 0.3
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+    except Exception as e:
+        logging.error(f"Mistral API error: {e}")
+    
+    return "Unable to generate insights at this time"
+
+@api_router.get("/insights/status")
+async def get_insights_status(user: dict = Depends(get_current_user)):
+    """Check if user is eligible for insights and get cached result if exists"""
+    if user["role"] != "job_seeker":
+        raise HTTPException(status_code=403, detail="Only job seekers can access insights")
+    
+    # Count rejections
+    rejection_count = await db.applications.count_documents({
+        "user_id": user["id"],
+        "status": "rejected"
+    })
+    
+    # Check for cached insight
+    cached = await db.insights.find_one({"user_id": user["id"]})
+    
+    can_regenerate = True
+    if cached:
+        # Check if 24 hours have passed
+        generated_at = cached.get("generated_at")
+        if generated_at:
+            time_diff = datetime.now(timezone.utc) - generated_at
+            can_regenerate = time_diff.total_seconds() >= 86400  # 24 hours
+    
+    return {
+        "rejection_count": rejection_count,
+        "eligible": rejection_count >= 5,
+        "has_cached": cached is not None,
+        "can_regenerate": can_regenerate,
+        "cached_insight": cached.get("insight") if cached else None,
+        "generated_at": cached.get("generated_at").isoformat() if cached and cached.get("generated_at") else None
+    }
+
+@api_router.post("/insights/generate")
+async def generate_insights(user: dict = Depends(get_current_user)):
+    """Generate AI insights for rejection patterns"""
+    if user["role"] != "job_seeker":
+        raise HTTPException(status_code=403, detail="Only job seekers can access insights")
+    
+    # Check eligibility
+    rejection_count = await db.applications.count_documents({
+        "user_id": user["id"],
+        "status": "rejected"
+    })
+    
+    if rejection_count < 5:
+        raise HTTPException(status_code=400, detail="Need at least 5 rejections to unlock insights")
+    
+    # Check rate limit (24 hours)
+    cached = await db.insights.find_one({"user_id": user["id"]})
+    if cached:
+        generated_at = cached.get("generated_at")
+        if generated_at:
+            time_diff = datetime.now(timezone.utc) - generated_at
+            if time_diff.total_seconds() < 86400:
+                # Return cached result
+                return {
+                    "insight": cached.get("insight"),
+                    "generated_at": generated_at.isoformat(),
+                    "from_cache": True
+                }
+    
+    # Get user profile
+    profile = await db.profiles.find_one({"user_id": user["id"]})
+    if not profile:
+        raise HTTPException(status_code=400, detail="Please complete your profile first")
+    
+    # Prepare user data (minimal)
+    user_skills = profile.get("skills", "")[:200].strip()
+    top_skills = ", ".join(user_skills.split(",")[:5]) if user_skills else "Not specified"
+    user_exp = profile.get("experience", {}).get("years", 0)
+    has_degree = "Yes" if profile.get("education", {}).get("has_bachelors") or profile.get("education", {}).get("has_masters") else "No"
+    has_certs = "Yes" if len(profile.get("certifications", [])) > 0 else "No"
+    
+    # Get rejected jobs data
+    rejected_apps = await db.applications.find({
+        "user_id": user["id"],
+        "status": "rejected"
+    }).to_list(50)
+    
+    rejected_job_ids = [ObjectId(app["job_id"]) for app in rejected_apps]
+    rejected_jobs = await db.jobs.find({"_id": {"$in": rejected_job_ids}}).to_list(50)
+    
+    # Extract requirements from rejected jobs
+    rejected_skills = []
+    rejected_exp_total = 0
+    for job in rejected_jobs:
+        req = job.get("requirements", {})
+        if req.get("notes"):
+            rejected_skills.extend(req["notes"].split(",")[:3])
+    
+    top_rejected_skills = ", ".join(list(set(rejected_skills))[:5]) if rejected_skills else "Various technical skills"
+    
+    # Get shortlisted candidates data for comparison
+    shortlisted_apps = await db.applications.find({"status": "shortlisted"}).to_list(100)
+    shortlisted_user_ids = list(set([app["user_id"] for app in shortlisted_apps]))
+    shortlisted_profiles = await db.profiles.find({"user_id": {"$in": shortlisted_user_ids}}).to_list(50)
+    
+    shortlisted_skills = []
+    shortlisted_exp_total = 0
+    shortlisted_degree_count = 0
+    for sp in shortlisted_profiles:
+        if sp.get("skills"):
+            shortlisted_skills.extend(sp["skills"].split(",")[:3])
+        shortlisted_exp_total += sp.get("experience", {}).get("years", 0)
+        if sp.get("education", {}).get("has_bachelors") or sp.get("education", {}).get("has_masters"):
+            shortlisted_degree_count += 1
+    
+    top_shortlisted_skills = ", ".join(list(set(shortlisted_skills))[:5]) if shortlisted_skills else "Not enough data"
+    avg_shortlisted_exp = round(shortlisted_exp_total / len(shortlisted_profiles), 1) if shortlisted_profiles else 0
+    shortlisted_degree_pct = round((shortlisted_degree_count / len(shortlisted_profiles)) * 100) if shortlisted_profiles else 0
+    
+    # Build AI prompt
+    prompt = f"""You are an AI career assistant.
+
+Analyze why the user is getting rejected across multiple job applications.
+
+Return ONLY:
+- 2–3 reasons for rejection
+- 2 differences from successful candidates
+- 2 improvement suggestions
+
+Rules:
+- Max 80 words
+- Bullet points only
+- No repetition
+- No extra explanation
+
+If data is insufficient, return: Not enough data
+
+User:
+- Top skills: {top_skills}
+- Experience: {user_exp} years
+- Degree: {has_degree}
+- Certifications: {has_certs}
+
+Rejected Summary:
+- Required skills: {top_rejected_skills}
+- Jobs rejected from: {len(rejected_jobs)}
+
+Shortlisted Summary:
+- Top skills: {top_shortlisted_skills}
+- Avg experience: {avg_shortlisted_exp} years
+- Degree presence: {shortlisted_degree_pct}%"""
+
+    # Call AI
+    insight = await call_mistral_api(prompt)
+    
+    # Cache result
+    await db.insights.update_one(
+        {"user_id": user["id"]},
+        {"$set": {
+            "insight": insight,
+            "generated_at": datetime.now(timezone.utc),
+            "rejection_count": rejection_count
+        }},
+        upsert=True
+    )
+    
+    return {
+        "insight": insight,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "from_cache": False
+    }
 
 # Root route
 @api_router.get("/")

@@ -4,7 +4,7 @@ import axios from 'axios';
 import { 
   ArrowLeft, Star, Check, X, Robot, HandWaving,
   Envelope, Briefcase, GraduationCap, Certificate, MapPin,
-  Phone, WhatsappLogo, Code, FolderOpen
+  Phone, WhatsappLogo, Code, FolderOpen, GithubLogo
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
@@ -16,7 +16,9 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
   const handleEmailContact = () => {
     const email = profile.email || applicant.email;
     if (email) {
-      window.open(`mailto:${email}?subject=Regarding Your Job Application&body=Hi ${applicant.name},`, '_blank');
+      const subject = encodeURIComponent('Regarding Your Job Application');
+      const body = encodeURIComponent(`Hi ${applicant.name},\n\n`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     } else {
       toast.error('No email available for this candidate');
     }
@@ -27,9 +29,19 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
     if (phone) {
       // Remove spaces, dashes, and ensure proper format
       const cleanPhone = phone.replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
-      window.open(`https://wa.me/${cleanPhone}?text=Hi ${applicant.name}, I'm reaching out regarding your job application.`, '_blank');
+      const message = encodeURIComponent(`Hi ${applicant.name}, I'm reaching out regarding your job application.`);
+      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
     } else {
       toast.error('No WhatsApp number available for this candidate');
+    }
+  };
+
+  const handleGitHubOpen = () => {
+    const github = profile.github;
+    if (github) {
+      window.open(github, '_blank');
+    } else {
+      toast.error('No GitHub profile available');
     }
   };
 
@@ -48,7 +60,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       </div>
 
       {/* Contact Info */}
-      {(profile.email || profile.phone) && (
+      {(profile.email || profile.phone || profile.github) && (
         <div className="bg-[#FAFAFA] rounded-2xl p-4 mb-4">
           <h4 className="text-xs uppercase tracking-wide text-[#7B8E83] font-semibold mb-3">Contact Information</h4>
           <div className="space-y-2">
@@ -62,6 +74,14 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
               <div className="flex items-center gap-2 text-sm text-[#4A5D53]">
                 <Phone size={16} className="text-[#70AF88]" />
                 {profile.phone}
+              </div>
+            )}
+            {profile.github && (
+              <div className="flex items-center gap-2 text-sm text-[#4A5D53]">
+                <GithubLogo size={16} className="text-[#70AF88]" />
+                <a href={profile.github} target="_blank" rel="noopener noreferrer" className="text-[#70AF88] hover:underline">
+                  {profile.github.replace('https://github.com/', '')}
+                </a>
               </div>
             )}
           </div>
@@ -163,23 +183,35 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       )}
 
       {/* Contact Buttons */}
-      <div className="flex gap-3 mb-4">
+      <div className="flex gap-2 mb-4">
         <button
           onClick={handleEmailContact}
           className="flex-1 py-3 bg-[#FAFAFA] hover:bg-[#A8D5BA]/20 text-[#4A5D53] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
           data-testid="email-contact-btn"
         >
-          <Envelope size={20} weight="duotone" className="text-[#70AF88]" />
+          <Envelope size={18} weight="duotone" className="text-[#70AF88]" />
           Email
         </button>
-        <button
-          onClick={handleWhatsAppContact}
-          className="flex-1 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-          data-testid="whatsapp-contact-btn"
-        >
-          <WhatsappLogo size={20} weight="fill" />
-          WhatsApp
-        </button>
+        {profile.phone && (
+          <button
+            onClick={handleWhatsAppContact}
+            className="flex-1 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+            data-testid="whatsapp-contact-btn"
+          >
+            <WhatsappLogo size={18} weight="fill" />
+            WhatsApp
+          </button>
+        )}
+        {profile.github && (
+          <button
+            onClick={handleGitHubOpen}
+            className="flex-1 py-3 bg-[#24292e]/10 hover:bg-[#24292e]/20 text-[#24292e] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+            data-testid="github-contact-btn"
+          >
+            <GithubLogo size={18} weight="fill" />
+            GitHub
+          </button>
+        )}
       </div>
 
       {/* Actions */}

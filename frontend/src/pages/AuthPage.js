@@ -56,7 +56,7 @@ export default function AuthPage() {
       <div className="mobile-container px-6 py-12 overflow-y-auto custom-scrollbar">
         <div className="flex flex-col items-center mb-10 animate-fade-in">
           <div className="w-20 h-20 rounded-3xl bg-[#A8D5BA] flex items-center justify-center mb-4 shadow-lg">
-            <Briefcase size={40} weight="duotone" className="text-[#112217]" />
+            <span className="text-4xl">💫</span>
           </div>
           <h1 className="text-3xl font-medium text-[#1C2B23] tracking-tight">Jobswish</h1>
           <p className="text-[#7B8E83] mt-2">Find your perfect match</p>
@@ -186,12 +186,6 @@ export default function AuthPage() {
             )}
           </button>
         </form>
-
-        {isLogin && (
-          <p className="text-center text-[#7B8E83] text-sm mt-6">
-            Demo: admin@jobswish.com / admin123
-          </p>
-        )}
       </div>
     </div>
   );
