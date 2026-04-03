@@ -280,7 +280,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-item.active {
-  color: var(--primary-active);
+  color: #2D5A3D;
   transform: scale(1.1);
 }
 

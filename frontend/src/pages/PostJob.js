@@ -35,7 +35,7 @@ export default function PostJob() {
       return;
     }
 
-    if (requirementNotes.length > 500) {
+    if (requirementNotes.split(/\s+/).filter(Boolean).length > 500) {
       toast.error('Requirement notes must be under 500 words');
       return;
     }
@@ -63,6 +63,7 @@ export default function PostJob() {
       toast.success('Job posted successfully!');
       navigate('/');
     } catch (e) {
+      console.error('Error posting job:', e);
       toast.error(e.response?.data?.detail || 'Failed to post job');
     }
     setSaving(false);
@@ -75,18 +76,18 @@ export default function PostJob() {
         <div className="px-6 pt-6 pb-4 flex items-center gap-4 border-b border-[#E8E6DF]">
           <button
             onClick={() => navigate('/')}
-            className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53]"
+            className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53]"
             data-testid="back-btn"
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-medium text-[#1C2B23]">Post a Job</h1>
+          <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Post a Job</h1>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-6 pb-32 space-y-5">
           <div>
-            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Job Title *</label>
+            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Job Title <span className="text-[#C75050]">*</span></label>
             <input
               type="text"
               value={title}
@@ -99,7 +100,7 @@ export default function PostJob() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Company Name *</label>
+            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Company Name <span className="text-[#C75050]">*</span></label>
             <input
               type="text"
               value={companyName}
@@ -113,7 +114,7 @@ export default function PostJob() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Min Salary *</label>
+              <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Min Salary <span className="text-[#C75050]">*</span></label>
               <input
                 type="number"
                 value={salaryMin}
@@ -125,7 +126,7 @@ export default function PostJob() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Max Salary *</label>
+              <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Max Salary <span className="text-[#C75050]">*</span></label>
               <input
                 type="number"
                 value={salaryMax}
@@ -139,7 +140,7 @@ export default function PostJob() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Description *</label>
+            <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Description <span className="text-[#C75050]">*</span></label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -163,7 +164,7 @@ export default function PostJob() {
           </div>
 
           <div className="pt-4 border-t border-[#E8E6DF]">
-            <h3 className="text-sm font-medium text-[#1C2B23] mb-4">Location *</h3>
+            <h3 className="text-sm font-medium text-[#1C2B23] mb-4">Location <span className="text-[#C75050]">*</span></h3>
             <div className="space-y-4">
               <input
                 type="text"
@@ -198,7 +199,7 @@ export default function PostJob() {
           <div className="pt-4 border-t border-[#E8E6DF]">
             <h3 className="text-sm font-medium text-[#1C2B23] mb-4">Requirements</h3>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[#FAFAFA] rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-[#FDF8F0] rounded-2xl">
                 <span className="text-[#1C2B23]">Bachelor's Required</span>
                 <Switch 
                   checked={bachelorRequired} 
@@ -206,7 +207,7 @@ export default function PostJob() {
                   data-testid="bachelor-required-toggle"
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-[#FAFAFA] rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-[#FDF8F0] rounded-2xl">
                 <span className="text-[#1C2B23]">Master's Required</span>
                 <Switch 
                   checked={masterRequired} 
@@ -214,7 +215,7 @@ export default function PostJob() {
                   data-testid="master-required-toggle"
                 />
               </div>
-              <div className="flex items-center justify-between p-4 bg-[#FAFAFA] rounded-2xl">
+              <div className="flex items-center justify-between p-4 bg-[#FDF8F0] rounded-2xl">
                 <span className="text-[#1C2B23]">Certification Required</span>
                 <Switch 
                   checked={certificationRequired} 
@@ -243,9 +244,10 @@ export default function PostJob() {
         {/* Submit button */}
         <div className="absolute bottom-6 left-6 right-6">
           <button
+            type="submit"
             onClick={handleSubmit}
             disabled={saving}
-            className="btn-primary"
+            className="w-full py-4 bg-[#2D5A3D] text-white rounded-full font-medium hover:bg-[#244A32] transition-colors disabled:opacity-60"
             data-testid="submit-job-btn"
           >
             {saving ? 'Posting...' : 'Post Job'}

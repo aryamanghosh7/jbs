@@ -12,10 +12,8 @@ import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-// Check if profile is complete enough for matching
 function isProfileComplete(profile) {
   if (!profile) return false;
-  // Must have skills filled in for matching to work
   return profile.skills && profile.skills.trim().length > 0;
 }
 
@@ -49,7 +47,6 @@ function JobCard({ job, onSwipe }) {
       exit={{ x: x.get() > 0 ? 500 : -500, opacity: 0, transition: { duration: 0.3 } }}
       data-testid="job-card"
     >
-      {/* Swipe overlays */}
       <motion.div className="swipe-overlay-right" style={{ opacity: rightOpacity }}>
         <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#2D5A3D] flex items-center justify-center">
           <Heart size={40} weight="fill" className="text-white" />
@@ -61,15 +58,13 @@ function JobCard({ job, onSwipe }) {
         </div>
       </motion.div>
 
-      {/* Match badge */}
       <div className="match-badge" data-testid="match-score">
         <Star size={16} weight="fill" className="text-[#2D5A3D]" />
         {job.match_score}% Match
       </div>
 
-      {/* Card content */}
       <div className="h-full flex flex-col">
-        <div className="h-[30%] lg:h-[35%] bg-gradient-to-br from-[#A8D5BA] to-[#70AF88] flex items-center justify-center relative overflow-hidden">
+        <div className="h-[30%] lg:h-[35%] bg-gradient-to-br from-[#2D5A3D] to-[#1B3926] flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-4 left-4 w-32 h-32 rounded-full bg-white/30" />
             <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-white/20" />
@@ -85,11 +80,11 @@ function JobCard({ job, onSwipe }) {
 
           <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-[#7B8E83] mb-3 md:mb-4">
             <span className="flex items-center gap-1">
-              <MapPin size={14} weight="duotone" className="md:w-4 md:h-4" />
+              <MapPin size={14} weight="duotone" />
               {job.city}, {job.state}
             </span>
             <span className="flex items-center gap-1">
-              <Money size={14} weight="duotone" className="md:w-4 md:h-4" />
+              <Money size={14} weight="duotone" />
               {formatSalary(job.salary_min, job.salary_max)}
             </span>
           </div>
@@ -98,13 +93,13 @@ function JobCard({ job, onSwipe }) {
 
           <div className="flex flex-wrap gap-2">
             {job.requirements?.bachelor_required && (
-              <span className="px-2 md:px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Bachelor's</span>
+              <span className="px-2 md:px-3 py-1 bg-[#2D5A3D]/15 text-[#2D5A3D] text-xs font-medium rounded-full">Bachelor's</span>
             )}
             {job.requirements?.master_required && (
               <span className="px-2 md:px-3 py-1 bg-[#D2B48C]/20 text-[#B08D5E] text-xs font-medium rounded-full">Master's</span>
             )}
             {job.requirements?.certification_required && (
-              <span className="px-2 md:px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Certification</span>
+              <span className="px-2 md:px-3 py-1 bg-[#2D5A3D]/15 text-[#2D5A3D] text-xs font-medium rounded-full">Certification</span>
             )}
           </div>
         </div>
@@ -126,7 +121,7 @@ function AllJobsCard({ job, onApply, applied }) {
           <h3 className="font-medium text-[#1C2B23]">{job.title}</h3>
           <p className="text-sm text-[#4A5D53]">{job.company_name}</p>
         </div>
-        <div className="px-2 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full flex items-center gap-1">
+        <div className="px-2 py-1 bg-[#2D5A3D]/15 text-[#2D5A3D] text-xs font-medium rounded-full flex items-center gap-1">
           <Star size={12} weight="fill" />
           {job.match_score}%
         </div>
@@ -143,14 +138,14 @@ function AllJobsCard({ job, onApply, applied }) {
       </div>
       <p className="text-sm text-[#4A5D53] line-clamp-2 mb-4">{job.description}</p>
       {applied ? (
-        <div className="py-3 bg-[#A8D5BA]/20 text-[#70AF88] rounded-full font-medium text-center text-sm flex items-center justify-center gap-2">
+        <div className="py-3 bg-[#2D5A3D]/15 text-[#2D5A3D] rounded-full font-medium text-center text-sm flex items-center justify-center gap-2">
           <CheckCircle size={16} weight="bold" />
           Applied
         </div>
       ) : (
         <button
           onClick={() => onApply(job.id)}
-          className="btn-primary py-3 text-sm"
+          className="w-full py-3 bg-[#2D5A3D] text-white rounded-full font-medium text-sm hover:bg-[#244A32] transition-colors"
           data-testid="apply-btn"
         >
           Apply Now
@@ -162,8 +157,9 @@ function AllJobsCard({ job, onApply, applied }) {
 
 function ApplicationCard({ app }) {
   const statusColors = {
-    pending: 'status-pending',
-    shortlisted: 'status-shortlisted',
+    pending: 'bg-[#D2B48C] text-[#2D1D09]',
+    shortlisted: 'bg-[#2D5A3D] text-white',
+    rejected: 'bg-[#C75050] text-white',
   };
 
   return (
@@ -200,7 +196,6 @@ function InsightsTab() {
       setStatus(data);
     } catch (e) {
       console.error(e);
-      toast.error('Failed to load insights status');
     }
     setLoading(false);
   };
@@ -231,7 +226,6 @@ function InsightsTab() {
     );
   }
 
-  // Not enough rejections
   if (!status?.eligible) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center">
@@ -249,17 +243,16 @@ function InsightsTab() {
     );
   }
 
-  // Has cached insight
   if (status?.has_cached && status?.cached_insight) {
     return (
       <div className="p-6 overflow-y-auto h-full custom-scrollbar">
         <div className="job-card p-6 mb-4">
           <div className="flex items-center gap-2 mb-4">
-            <Lightbulb size={24} weight="duotone" className="text-[#70AF88]" />
+            <Lightbulb size={24} weight="duotone" className="text-[#2D5A3D]" />
             <h3 className="text-lg font-medium text-[#1C2B23]">Your Rejection Insights</h3>
           </div>
           
-          <div className="bg-[#FAFAFA] rounded-xl p-4 mb-4 whitespace-pre-wrap text-sm text-[#4A5D53] leading-relaxed">
+          <div className="bg-[#FDF8F0] rounded-xl p-4 mb-4 whitespace-pre-wrap text-sm text-[#4A5D53] leading-relaxed">
             {status.cached_insight}
           </div>
 
@@ -274,7 +267,7 @@ function InsightsTab() {
             disabled={!status.can_regenerate || generating}
             className={`w-full py-3 rounded-full font-medium flex items-center justify-center gap-2 transition-all ${
               status.can_regenerate && !generating
-                ? 'bg-[#A8D5BA] text-[#112217] hover:bg-[#8BC2A1]'
+                ? 'bg-[#2D5A3D] text-white hover:bg-[#244A32]'
                 : 'bg-[#E8E6DF] text-[#7B8E83] cursor-not-allowed'
             }`}
             data-testid="regenerate-insights-btn"
@@ -287,11 +280,10 @@ function InsightsTab() {
     );
   }
 
-  // Eligible but no insight yet
   return (
     <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-      <div className="w-20 h-20 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
-        <Lightbulb size={40} weight="duotone" className="text-[#70AF88]" />
+      <div className="w-20 h-20 rounded-full bg-[#2D5A3D]/15 flex items-center justify-center mb-4">
+        <Lightbulb size={40} weight="duotone" className="text-[#2D5A3D]" />
       </div>
       <h3 className="text-lg font-medium text-[#1C2B23] mb-2">Ready for Insights</h3>
       <p className="text-[#7B8E83] mb-6 max-w-sm">
@@ -300,12 +292,12 @@ function InsightsTab() {
       <button
         onClick={handleGenerate}
         disabled={generating}
-        className="btn-primary max-w-xs flex items-center justify-center gap-2"
+        className="px-8 py-3 bg-[#2D5A3D] text-white rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#244A32] transition-colors disabled:opacity-60"
         data-testid="analyze-profile-btn"
       >
         {generating ? (
           <>
-            <div className="w-5 h-5 border-2 border-[#112217]/30 border-t-[#112217] rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             Analyzing...
           </>
         ) : (
@@ -388,7 +380,6 @@ export default function JobSeekerHome() {
       } else {
         await axios.post(`${API}/api/reject/${job.id}`, {}, { withCredentials: true });
       }
-      // Remove the job from matches immediately
       setMatches(prev => prev.slice(1));
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Action failed');
@@ -407,7 +398,6 @@ export default function JobSeekerHome() {
 
   const currentJob = matches[0];
 
-  // Show loading while checking profile
   if (!profileChecked) {
     return (
       <div className="app-wrapper">
@@ -418,12 +408,10 @@ export default function JobSeekerHome() {
     );
   }
 
-  // Show profile completion prompt if profile is incomplete
   if (!isProfileComplete(profile)) {
     return (
       <div className="app-wrapper">
         <div className="mobile-container">
-          {/* Header */}
           <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
             <div>
               <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
@@ -431,17 +419,16 @@ export default function JobSeekerHome() {
             </div>
             <button
               onClick={logout}
-              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#E8A3A3]/20 transition-colors"
+              className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53] hover:bg-[#C75050]/10 transition-colors"
               data-testid="logout-btn"
             >
               <SignOut size={20} />
             </button>
           </div>
 
-          {/* Profile completion prompt */}
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-6">
-              <NotePencil size={48} weight="duotone" className="text-[#70AF88] lg:w-16 lg:h-16" />
+            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-[#2D5A3D]/15 flex items-center justify-center mb-6">
+              <NotePencil size={48} weight="duotone" className="text-[#2D5A3D] lg:w-16 lg:h-16" />
             </div>
             <h2 className="text-2xl lg:text-3xl font-medium text-[#1C2B23] mb-3">Build Your Resume</h2>
             <p className="text-[#7B8E83] mb-8 max-w-sm lg:text-lg">
@@ -449,7 +436,7 @@ export default function JobSeekerHome() {
             </p>
             <button
               onClick={() => navigate('/resume')}
-              className="btn-primary max-w-xs"
+              className="px-8 py-4 bg-[#2D5A3D] text-white rounded-full font-medium hover:bg-[#244A32] transition-colors"
               data-testid="complete-profile-btn"
             >
               Complete Profile
@@ -463,7 +450,6 @@ export default function JobSeekerHome() {
   return (
     <div className="app-wrapper">
       <div className="mobile-container">
-        {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
           <div>
             <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
@@ -472,14 +458,14 @@ export default function JobSeekerHome() {
           <div className="flex gap-2">
             <button
               onClick={() => navigate('/resume')}
-              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#A8D5BA]/20 transition-colors"
+              className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53] hover:bg-[#2D5A3D]/10 transition-colors"
               data-testid="profile-btn"
             >
               <User size={20} weight="duotone" />
             </button>
             <button
               onClick={logout}
-              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#E8A3A3]/20 transition-colors"
+              className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53] hover:bg-[#C75050]/10 transition-colors"
               data-testid="logout-btn"
             >
               <SignOut size={20} />
@@ -487,7 +473,6 @@ export default function JobSeekerHome() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 relative overflow-hidden pb-20">
           {activeTab === 'insights' ? (
             <InsightsTab />
@@ -505,15 +490,14 @@ export default function JobSeekerHome() {
               
               {!currentJob && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
-                    <CheckCircle size={40} weight="duotone" className="text-[#70AF88] lg:w-12 lg:h-12" />
+                  <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#2D5A3D]/15 flex items-center justify-center mb-4">
+                    <CheckCircle size={40} weight="duotone" className="text-[#2D5A3D] lg:w-12 lg:h-12" />
                   </div>
                   <h3 className="text-lg lg:text-xl font-medium text-[#1C2B23] mb-2">All caught up!</h3>
                   <p className="text-[#7B8E83]">Check back later for new matches</p>
                 </div>
               )}
 
-              {/* Action buttons */}
               {currentJob && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6">
                   <button
@@ -565,7 +549,6 @@ export default function JobSeekerHome() {
           )}
         </div>
 
-        {/* Bottom nav */}
         <div className="bottom-nav">
           <button
             onClick={() => setActiveTab('matches')}

@@ -22,7 +22,7 @@ function JobCard({ job, onClick }) {
           <p className="text-sm text-[#4A5D53]">{job.company_name}</p>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          job.is_active ? 'bg-[#A8D5BA]/20 text-[#70AF88]' : 'bg-[#E8E6DF] text-[#7B8E83]'
+          job.is_active ? 'bg-[#2D5A3D]/15 text-[#2D5A3D]' : 'bg-[#E8E6DF] text-[#7B8E83]'
         }`}>
           {job.is_active ? 'Active' : 'Closed'}
         </span>
@@ -50,6 +50,7 @@ export default function RecruiterHome() {
       const { data } = await axios.get(`${API}/api/jobs/recruiter`, { withCredentials: true });
       setJobs(data);
     } catch (e) {
+      console.error('Error fetching jobs:', e);
       toast.error('Failed to load jobs');
     }
     setLoading(false);
@@ -64,12 +65,12 @@ export default function RecruiterHome() {
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
           <div>
-            <h1 className="text-xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
+            <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
             <p className="text-sm text-[#7B8E83]">Recruiter Dashboard</p>
           </div>
           <button
             onClick={logout}
-            className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#E8A3A3]/20 transition-colors"
+            className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53] hover:bg-[#C75050]/10 transition-colors"
             data-testid="logout-btn"
           >
             <SignOut size={20} />
@@ -78,14 +79,14 @@ export default function RecruiterHome() {
 
         {/* Stats */}
         <div className="px-6 py-4 grid grid-cols-2 gap-4">
-          <div className="bg-[#A8D5BA]/10 rounded-2xl p-4">
+          <div className="bg-[#2D5A3D]/10 rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle size={20} weight="duotone" className="text-[#70AF88]" />
+              <CheckCircle size={20} weight="duotone" className="text-[#2D5A3D]" />
               <span className="text-sm text-[#4A5D53]">Active Jobs</span>
             </div>
             <p className="text-2xl font-medium text-[#1C2B23]">{activeJobs.length}</p>
           </div>
-          <div className="bg-[#D2B48C]/10 rounded-2xl p-4">
+          <div className="bg-[#D2B48C]/15 rounded-2xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <XCircle size={20} weight="duotone" className="text-[#B08D5E]" />
               <span className="text-sm text-[#4A5D53]">Closed Jobs</span>
@@ -102,7 +103,7 @@ export default function RecruiterHome() {
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-[#FAFAFA] flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full bg-[#FDF8F0] flex items-center justify-center mx-auto mb-4">
                 <Briefcase size={32} weight="duotone" className="text-[#7B8E83]" />
               </div>
               <h3 className="font-medium text-[#1C2B23] mb-1">No jobs posted yet</h3>
@@ -134,7 +135,7 @@ export default function RecruiterHome() {
         <div className="absolute bottom-6 left-6 right-6">
           <button
             onClick={() => navigate('/post-job')}
-            className="btn-primary flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[#2D5A3D] text-white rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#244A32] transition-colors"
             data-testid="post-job-btn"
           >
             <Plus size={20} weight="bold" />

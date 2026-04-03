@@ -12,38 +12,9 @@ const API = process.env.REACT_APP_BACKEND_URL;
 
 function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }) {
   const profile = applicant.profile || {};
-  
-  const handleEmailContact = () => {
-    const email = profile.email || applicant.email;
-    if (email) {
-      const subject = encodeURIComponent('Regarding Your Job Application');
-      const body = encodeURIComponent(`Hi ${applicant.name},\n\n`);
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    } else {
-      toast.error('No email available for this candidate');
-    }
-  };
-
-  const handleWhatsAppContact = () => {
-    const phone = profile.phone;
-    if (phone) {
-      // Remove spaces, dashes, and ensure proper format
-      const cleanPhone = phone.replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
-      const message = encodeURIComponent(`Hi ${applicant.name}, I'm reaching out regarding your job application.`);
-      window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-    } else {
-      toast.error('No WhatsApp number available for this candidate');
-    }
-  };
-
-  const handleGitHubOpen = () => {
-    const github = profile.github;
-    if (github) {
-      window.open(github, '_blank');
-    } else {
-      toast.error('No GitHub profile available');
-    }
-  };
+  const contactEmail = profile.email || applicant.email;
+  const contactPhone = profile.phone;
+  const contactGithub = profile.github;
 
   return (
     <div className="job-card p-6 mb-6" data-testid="applicant-card">
@@ -60,27 +31,27 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       </div>
 
       {/* Contact Info */}
-      {(profile.email || profile.phone || profile.github) && (
-        <div className="bg-[#FAFAFA] rounded-2xl p-4 mb-4">
+      {(contactEmail || contactPhone || contactGithub) && (
+        <div className="bg-[#FDF8F0] rounded-2xl p-4 mb-4">
           <h4 className="text-xs uppercase tracking-wide text-[#7B8E83] font-semibold mb-3">Contact Information</h4>
           <div className="space-y-2">
-            {profile.email && (
+            {contactEmail && (
               <div className="flex items-center gap-2 text-sm text-[#4A5D53]">
-                <Envelope size={16} className="text-[#70AF88]" />
-                {profile.email}
+                <Envelope size={16} className="text-[#2D5A3D]" />
+                {contactEmail}
               </div>
             )}
-            {profile.phone && (
+            {contactPhone && (
               <div className="flex items-center gap-2 text-sm text-[#4A5D53]">
-                <Phone size={16} className="text-[#70AF88]" />
-                {profile.phone}
+                <Phone size={16} className="text-[#2D5A3D]" />
+                {contactPhone}
               </div>
             )}
-            {profile.github && (
+            {contactGithub && (
               <div className="flex items-center gap-2 text-sm text-[#4A5D53]">
-                <GithubLogo size={16} className="text-[#70AF88]" />
-                <a href={profile.github} target="_blank" rel="noopener noreferrer" className="text-[#70AF88] hover:underline">
-                  {profile.github.replace('https://github.com/', '')}
+                <GithubLogo size={16} className="text-[#2D5A3D]" />
+                <a href={contactGithub} target="_blank" rel="noopener noreferrer" className="text-[#2D5A3D] hover:underline">
+                  {contactGithub.replace('https://github.com/', '')}
                 </a>
               </div>
             )}
@@ -95,17 +66,17 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
             <Code size={18} className="text-[#B08D5E]" />
             <h4 className="text-sm font-medium text-[#1C2B23]">Skills</h4>
           </div>
-          <p className="text-sm text-[#4A5D53] bg-[#FAFAFA] rounded-xl p-3">{profile.skills}</p>
+          <p className="text-sm text-[#4A5D53] bg-[#FDF8F0] rounded-xl p-3">{profile.skills}</p>
         </div>
       )}
 
       {/* Experience */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <Briefcase size={18} className="text-[#70AF88]" />
+          <Briefcase size={18} className="text-[#2D5A3D]" />
           <h4 className="text-sm font-medium text-[#1C2B23]">Experience</h4>
         </div>
-        <div className="bg-[#FAFAFA] rounded-xl p-3">
+        <div className="bg-[#FDF8F0] rounded-xl p-3">
           <p className="text-sm text-[#4A5D53] mb-2">
             <span className="font-medium">{profile.experience?.years || 0} years</span> of experience
           </p>
@@ -125,12 +96,12 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       {/* Education */}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-2">
-          <GraduationCap size={18} className="text-[#70AF88]" />
+          <GraduationCap size={18} className="text-[#2D5A3D]" />
           <h4 className="text-sm font-medium text-[#1C2B23]">Education</h4>
         </div>
         <div className="flex flex-wrap gap-2">
           {profile.education?.has_bachelors && (
-            <span className="px-3 py-1.5 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full flex items-center gap-1">
+            <span className="px-3 py-1.5 bg-[#2D5A3D]/15 text-[#2D5A3D] text-xs font-medium rounded-full flex items-center gap-1">
               <Check size={12} weight="bold" /> Bachelor's Degree
             </span>
           )}
@@ -162,10 +133,10 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       {profile.projects && (
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <FolderOpen size={18} className="text-[#70AF88]" />
+            <FolderOpen size={18} className="text-[#2D5A3D]" />
             <h4 className="text-sm font-medium text-[#1C2B23]">Projects</h4>
           </div>
-          <p className="text-sm text-[#4A5D53] bg-[#FAFAFA] rounded-xl p-3 whitespace-pre-wrap">{profile.projects}</p>
+          <p className="text-sm text-[#4A5D53] bg-[#FDF8F0] rounded-xl p-3 whitespace-pre-wrap">{profile.projects}</p>
         </div>
       )}
 
@@ -173,7 +144,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       {(profile.location?.city || profile.location?.country) && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <MapPin size={18} className="text-[#70AF88]" />
+            <MapPin size={18} className="text-[#2D5A3D]" />
             <h4 className="text-sm font-medium text-[#1C2B23]">Location</h4>
           </div>
           <p className="text-sm text-[#4A5D53]">
@@ -182,35 +153,41 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
         </div>
       )}
 
-      {/* Contact Buttons */}
+      {/* Contact Buttons - Using anchor tags for email */}
       <div className="flex gap-2 mb-4">
-        <button
-          onClick={handleEmailContact}
-          className="flex-1 py-3 bg-[#FAFAFA] hover:bg-[#A8D5BA]/20 text-[#4A5D53] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-          data-testid="email-contact-btn"
-        >
-          <Envelope size={18} weight="duotone" className="text-[#70AF88]" />
-          Email
-        </button>
-        {profile.phone && (
-          <button
-            onClick={handleWhatsAppContact}
-            className="flex-1 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+        {contactEmail && (
+          <a
+            href={`mailto:${contactEmail}?subject=Regarding Your Job Application&body=Hi ${applicant.name},%0D%0A%0D%0A`}
+            className="flex-1 py-3 bg-[#FDF8F0] hover:bg-[#2D5A3D]/10 text-[#4A5D53] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors no-underline"
+            data-testid="email-contact-btn"
+          >
+            <Envelope size={18} weight="duotone" className="text-[#2D5A3D]" />
+            Email
+          </a>
+        )}
+        {contactPhone && (
+          <a
+            href={`https://wa.me/${contactPhone.replace(/[\s\-\(\)\+]/g, '')}?text=Hi ${encodeURIComponent(applicant.name)}, I'm reaching out regarding your job application.`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 py-3 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors no-underline"
             data-testid="whatsapp-contact-btn"
           >
             <WhatsappLogo size={18} weight="fill" />
             WhatsApp
-          </button>
+          </a>
         )}
-        {profile.github && (
-          <button
-            onClick={handleGitHubOpen}
-            className="flex-1 py-3 bg-[#24292e]/10 hover:bg-[#24292e]/20 text-[#24292e] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+        {contactGithub && (
+          <a
+            href={contactGithub}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 py-3 bg-[#24292e]/10 hover:bg-[#24292e]/20 text-[#24292e] rounded-xl font-medium flex items-center justify-center gap-2 transition-colors no-underline"
             data-testid="github-contact-btn"
           >
             <GithubLogo size={18} weight="fill" />
             GitHub
-          </button>
+          </a>
         )}
       </div>
 
@@ -227,7 +204,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
           </button>
           <button
             onClick={() => onReject(applicant.application_id)}
-            className="flex-1 py-3 bg-[#E8A3A3]/20 text-[#C75050] rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#E8A3A3]/30"
+            className="flex-1 py-3 bg-[#C75050]/15 text-[#C75050] rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#C75050]/25"
             data-testid="reject-applicant-btn"
           >
             <X size={18} weight="bold" />
@@ -237,7 +214,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       )}
 
       {applicant.status === 'shortlisted' && (
-        <div className="py-3 bg-[#2D5A3D]/20 text-[#2D5A3D] rounded-full font-medium text-center flex items-center justify-center gap-2">
+        <div className="py-3 bg-[#2D5A3D]/15 text-[#2D5A3D] rounded-full font-medium text-center flex items-center justify-center gap-2">
           <Check size={18} weight="bold" />
           Shortlisted
         </div>
@@ -260,7 +237,7 @@ function CompactApplicantCard({ applicant, onShortlist, onReject, onClick }) {
           <h3 className="font-medium text-[#1C2B23]">{applicant.name}</h3>
           <p className="text-sm text-[#4A5D53]">{applicant.email}</p>
         </div>
-        <div className="flex items-center gap-1 px-2 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-sm font-medium rounded-full">
+        <div className="flex items-center gap-1 px-2 py-1 bg-[#2D5A3D]/15 text-[#2D5A3D] text-sm font-medium rounded-full">
           <Star size={14} weight="fill" />
           {applicant.match_score}%
         </div>
@@ -269,33 +246,33 @@ function CompactApplicantCard({ applicant, onShortlist, onReject, onClick }) {
       {/* Quick stats */}
       <div className="flex flex-wrap gap-2 mb-3 text-xs">
         {profile.experience?.years > 0 && (
-          <span className="flex items-center gap-1 px-2 py-1 bg-[#FAFAFA] rounded-full text-[#4A5D53]">
+          <span className="flex items-center gap-1 px-2 py-1 bg-[#FDF8F0] rounded-full text-[#4A5D53]">
             <Briefcase size={12} />
             {profile.experience.years} years
           </span>
         )}
         {profile.education?.has_bachelors && (
-          <span className="flex items-center gap-1 px-2 py-1 bg-[#FAFAFA] rounded-full text-[#4A5D53]">
+          <span className="flex items-center gap-1 px-2 py-1 bg-[#FDF8F0] rounded-full text-[#4A5D53]">
             <GraduationCap size={12} />
             Bachelor's
           </span>
         )}
         {profile.location?.city && (
-          <span className="flex items-center gap-1 px-2 py-1 bg-[#FAFAFA] rounded-full text-[#4A5D53]">
+          <span className="flex items-center gap-1 px-2 py-1 bg-[#FDF8F0] rounded-full text-[#4A5D53]">
             <MapPin size={12} />
             {profile.location.city}
           </span>
         )}
       </div>
 
-      <p className="text-xs text-[#70AF88] font-medium">Click to view full resume →</p>
+      <p className="text-xs text-[#2D5A3D] font-medium">Click to view full resume →</p>
 
       {/* Actions */}
       {applicant.status === 'pending' && (
         <div className="flex gap-3 mt-4" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onShortlist(applicant.application_id)}
-            className="flex-1 py-2.5 bg-[#A8D5BA] text-[#112217] rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            className="flex-1 py-2.5 bg-[#2D5A3D] text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#244A32]"
             data-testid="shortlist-btn"
           >
             <Check size={16} weight="bold" />
@@ -303,7 +280,7 @@ function CompactApplicantCard({ applicant, onShortlist, onReject, onClick }) {
           </button>
           <button
             onClick={() => onReject(applicant.application_id)}
-            className="flex-1 py-2.5 bg-[#E8A3A3]/20 text-[#E8A3A3] rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            className="flex-1 py-2.5 bg-[#C75050]/15 text-[#C75050] rounded-full text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#C75050]/25"
             data-testid="reject-applicant-btn"
           >
             <X size={16} weight="bold" />
@@ -340,6 +317,7 @@ export default function JobApplicants() {
       setApplicants(applicantsRes.data);
       setShortlisted(shortlistRes.data);
     } catch (e) {
+      console.error(e);
       toast.error('Failed to load data');
     }
     setLoading(false);
@@ -389,8 +367,6 @@ export default function JobApplicants() {
     }
   };
 
-  const pendingApplicants = applicants.filter(a => a.status === 'pending');
-
   if (loading) {
     return (
       <div className="app-wrapper">
@@ -406,11 +382,10 @@ export default function JobApplicants() {
     return (
       <div className="app-wrapper">
         <div className="mobile-container">
-          {/* Header */}
           <div className="px-6 pt-6 pb-4 flex items-center gap-4 border-b border-[#E8E6DF]">
             <button
               onClick={() => setSelectedApplicant(null)}
-              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53]"
+              className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53]"
               data-testid="back-to-list-btn"
             >
               <ArrowLeft size={20} />
@@ -433,12 +408,11 @@ export default function JobApplicants() {
   return (
     <div className="app-wrapper">
       <div className="mobile-container">
-        {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-[#E8E6DF]">
           <div className="flex items-center gap-4 mb-3">
             <button
               onClick={() => navigate('/')}
-              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53]"
+              className="w-10 h-10 rounded-full bg-[#FDF8F0] flex items-center justify-center text-[#4A5D53]"
               data-testid="back-btn"
             >
               <ArrowLeft size={20} />
@@ -452,8 +426,7 @@ export default function JobApplicants() {
             )}
           </div>
 
-          {/* Tabs */}
-          <div className="bg-[#FAFAFA] p-1 rounded-full flex">
+          <div className="bg-[#FDF8F0] p-1 rounded-full flex">
             <button
               onClick={() => setActiveTab('all')}
               className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
@@ -475,12 +448,11 @@ export default function JobApplicants() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pb-48">
           {activeTab === 'all' ? (
             applicants.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-16 h-16 rounded-full bg-[#FAFAFA] flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-full bg-[#FDF8F0] flex items-center justify-center mx-auto mb-4">
                   <HandWaving size={32} weight="duotone" className="text-[#7B8E83]" />
                 </div>
                 <h3 className="font-medium text-[#1C2B23] mb-1">No applicants yet</h3>
@@ -503,7 +475,6 @@ export default function JobApplicants() {
                 <p className="text-[#7B8E83]">No shortlisted candidates</p>
               </div>
             ) : (
-              // Show FULL resume for shortlisted candidates
               shortlisted.map(a => (
                 <FullResumeCard 
                   key={a.application_id} 
@@ -517,12 +488,11 @@ export default function JobApplicants() {
           )}
         </div>
 
-        {/* Action buttons */}
         {job?.is_active && (
           <div className="absolute bottom-6 left-6 right-6 space-y-3">
             <button
               onClick={handleAIShortlist}
-              className="btn-primary flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#2D5A3D] text-white rounded-full font-medium flex items-center justify-center gap-2 hover:bg-[#244A32] transition-colors"
               data-testid="ai-shortlist-btn"
             >
               <Robot size={20} weight="duotone" />
@@ -530,7 +500,7 @@ export default function JobApplicants() {
             </button>
             <button
               onClick={handleCloseJob}
-              className="btn-secondary"
+              className="w-full py-3 bg-[#D2B48C] text-[#2D1D09] rounded-full font-medium hover:bg-[#C2A175] transition-colors"
               data-testid="close-job-btn"
             >
               End Offer & Close Job
