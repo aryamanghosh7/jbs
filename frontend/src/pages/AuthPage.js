@@ -55,7 +55,7 @@ export default function AuthPage() {
     <div className="app-wrapper">
       <div className="mobile-container px-6 py-12 overflow-y-auto custom-scrollbar">
         <div className="flex flex-col items-center mb-10 animate-fade-in">
-          <div className="w-20 h-20 rounded-3xl bg-[#A8D5BA] flex items-center justify-center mb-4 shadow-lg">
+          <div className="w-20 h-20 rounded-3xl bg-[#2D5A3D] flex items-center justify-center mb-4 shadow-lg">
             <span className="text-4xl">💫</span>
           </div>
           <h1 className="text-3xl font-medium text-[#1C2B23] tracking-tight">Jobswish</h1>

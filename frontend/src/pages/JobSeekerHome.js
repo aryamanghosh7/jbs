@@ -51,19 +51,19 @@ function JobCard({ job, onSwipe }) {
     >
       {/* Swipe overlays */}
       <motion.div className="swipe-overlay-right" style={{ opacity: rightOpacity }}>
-        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#A8D5BA] flex items-center justify-center">
+        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#2D5A3D] flex items-center justify-center">
           <Heart size={40} weight="fill" className="text-white" />
         </div>
       </motion.div>
       <motion.div className="swipe-overlay-left" style={{ opacity: leftOpacity }}>
-        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#E8A3A3] flex items-center justify-center">
+        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#C75050] flex items-center justify-center">
           <X size={40} weight="bold" className="text-white" />
         </div>
       </motion.div>
 
       {/* Match badge */}
       <div className="match-badge" data-testid="match-score">
-        <Star size={16} weight="fill" className="text-[#70AF88]" />
+        <Star size={16} weight="fill" className="text-[#2D5A3D]" />
         {job.match_score}% Match
       </div>
 
@@ -518,14 +518,14 @@ export default function JobSeekerHome() {
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6">
                   <button
                     onClick={() => handleSwipe('left')}
-                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-[#E8A3A3] active:scale-95 transition-transform hover:shadow-xl"
+                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-[#C75050] active:scale-95 transition-transform hover:shadow-xl"
                     data-testid="reject-btn"
                   >
                     <X size={28} weight="bold" />
                   </button>
                   <button
                     onClick={() => handleSwipe('right')}
-                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#A8D5BA] shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform hover:shadow-xl"
+                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#2D5A3D] shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform hover:shadow-xl hover:bg-[#244A32]"
                     data-testid="apply-swipe-btn"
                   >
                     <Heart size={28} weight="fill" />

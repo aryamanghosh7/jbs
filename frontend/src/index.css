@@ -5,31 +5,33 @@
 @tailwind utilities;
 
 :root {
-  --primary: #A8D5BA;
-  --primary-hover: #8BC2A1;
-  --primary-active: #70AF88;
-  --primary-foreground: #112217;
+  --primary: #2D5A3D;
+  --primary-hover: #244A32;
+  --primary-active: #1B3926;
+  --primary-foreground: #FFFFFF;
   
   --secondary: #D2B48C;
   --secondary-hover: #C2A175;
   --secondary-active: #B08D5E;
   --secondary-foreground: #2D1D09;
   
-  --background-app: #F7F6F2;
-  --background-container: #FFFFFF;
+  --background-app: #FDF6E9;
+  --background-container: #FFFEF9;
   --background-card: #FFFFFF;
-  --background-card-alt: #FAFAFA;
+  --background-card-alt: #FDF8F0;
   
   --text-primary: #1C2B23;
   --text-secondary: #4A5D53;
   --text-muted: #7B8E83;
   
   --border-default: #E8E6DF;
-  --border-focus: #A8D5BA;
+  --border-focus: #2D5A3D;
   
-  --status-match-high: #A8D5BA;
+  --status-match-high: #2D5A3D;
   --status-match-medium: #D2B48C;
   --status-reject: #E8A3A3;
+  
+  --toggle-active: #1C1C1C;
 }
 
 * {
@@ -53,14 +55,14 @@ h1, h2, h3, h4, h5, h6 {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 45 30% 96%;
     --foreground: 142 25% 14%;
     --card: 0 0% 100%;
     --card-foreground: 142 25% 14%;
     --popover: 0 0% 100%;
     --popover-foreground: 142 25% 14%;
-    --primary: 142 38% 75%;
-    --primary-foreground: 142 44% 10%;
+    --primary: 142 45% 32%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 32 42% 69%;
     --secondary-foreground: 32 68% 11%;
     --muted: 40 15% 95%;
@@ -71,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
     --destructive-foreground: 0 0% 98%;
     --border: 40 12% 90%;
     --input: 40 12% 90%;
-    --ring: 142 38% 75%;
+    --ring: 142 45% 32%;
     --radius: 1rem;
   }
 }
@@ -299,14 +301,14 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.875rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: var(--primary-active);
+  color: #2D5A3D;
 }
 
 /* Swipe overlays */
 .swipe-overlay-right {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(168, 213, 186, 0.3), rgba(168, 213, 186, 0.1));
+  background: linear-gradient(135deg, rgba(45, 90, 61, 0.3), rgba(45, 90, 61, 0.1));
   border-radius: 1.5rem;
   display: flex;
   align-items: center;
@@ -317,7 +319,7 @@ h1, h2, h3, h4, h5, h6 {
 .swipe-overlay-left {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(232, 163, 163, 0.3), rgba(232, 163, 163, 0.1));
+  background: linear-gradient(135deg, rgba(199, 80, 80, 0.3), rgba(199, 80, 80, 0.1));
   border-radius: 1.5rem;
   display: flex;
   align-items: center;
@@ -332,13 +334,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .status-shortlisted {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
+  background-color: #2D5A3D;
+  color: white;
 }
 
 .status-rejected {
-  background-color: var(--status-reject);
-  color: #5C2D2D;
+  background-color: #C75050;
+  color: white;
 }
 
 /* Toggle switch */
@@ -353,7 +355,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .toggle-switch.active {
-  background-color: var(--primary);
+  background-color: var(--toggle-active);
 }
 
 .toggle-switch::after {

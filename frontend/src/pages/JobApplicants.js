@@ -53,7 +53,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
           <h3 className="text-lg lg:text-xl font-medium text-[#1C2B23]">{applicant.name}</h3>
           <p className="text-sm text-[#4A5D53]">{applicant.email}</p>
         </div>
-        <div className="flex items-center gap-1 px-3 py-1.5 bg-[#A8D5BA]/20 text-[#70AF88] text-sm font-semibold rounded-full">
+        <div className="flex items-center gap-1 px-3 py-1.5 bg-[#2D5A3D]/15 text-[#2D5A3D] text-sm font-semibold rounded-full">
           <Star size={16} weight="fill" />
           {applicant.match_score}% Match
         </div>
@@ -219,7 +219,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
         <div className="flex gap-3 pt-4 border-t border-[#E8E6DF]">
           <button
             onClick={() => onShortlist(applicant.application_id)}
-            className="flex-1 py-3 bg-[#A8D5BA] text-[#112217] rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            className="flex-1 py-3 bg-[#2D5A3D] text-white rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#244A32]"
             data-testid="shortlist-btn"
           >
             <Check size={18} weight="bold" />
@@ -227,7 +227,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
           </button>
           <button
             onClick={() => onReject(applicant.application_id)}
-            className="flex-1 py-3 bg-[#E8A3A3]/20 text-[#E8A3A3] rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            className="flex-1 py-3 bg-[#E8A3A3]/20 text-[#C75050] rounded-full font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform hover:bg-[#E8A3A3]/30"
             data-testid="reject-applicant-btn"
           >
             <X size={18} weight="bold" />
@@ -237,7 +237,7 @@ function FullResumeCard({ applicant, onShortlist, onReject, showActions = true }
       )}
 
       {applicant.status === 'shortlisted' && (
-        <div className="py-3 bg-[#A8D5BA]/20 text-[#70AF88] rounded-full font-medium text-center flex items-center justify-center gap-2">
+        <div className="py-3 bg-[#2D5A3D]/20 text-[#2D5A3D] rounded-full font-medium text-center flex items-center justify-center gap-2">
           <Check size={18} weight="bold" />
           Shortlisted
         </div>
