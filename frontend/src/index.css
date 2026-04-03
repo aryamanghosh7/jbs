@@ -104,7 +104,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .mobile-container {
   width: 100%;
-  max-width: 28rem;
   min-height: 100vh;
   min-height: 100dvh;
   background-color: var(--background-container);
@@ -114,8 +113,10 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
+/* Tablet view */
 @media (min-width: 768px) {
   .mobile-container {
+    max-width: 600px;
     min-height: auto;
     height: 90vh;
     max-height: 900px;
@@ -124,12 +125,19 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Laptop/Desktop: wider container */
+/* Laptop/Desktop: wider container for full experience */
 @media (min-width: 1024px) {
   .mobile-container {
-    max-width: 32rem;
-    height: 85vh;
-    max-height: 850px;
+    max-width: 800px;
+    height: 90vh;
+    max-height: 950px;
+  }
+}
+
+/* Large desktop */
+@media (min-width: 1440px) {
+  .mobile-container {
+    max-width: 900px;
   }
 }
 

@@ -101,6 +101,8 @@ class ProfileLocation(BaseModel):
     show_only_city_jobs: bool = False
 
 class ProfileCreate(BaseModel):
+    email: str = ""  # Contact email
+    phone: str = ""  # Phone/WhatsApp number
     education: ProfileEducation = ProfileEducation()
     certifications: List[str] = []  # base64 images
     experience: ProfileExperience = ProfileExperience()

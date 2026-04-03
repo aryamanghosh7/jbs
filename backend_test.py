@@ -189,6 +189,8 @@ class JobswishAPITester:
             "profile",
             200,
             data={
+                "email": "jobseeker@test.com",  # Contact email
+                "phone": "+1-555-123-4567",    # Phone/WhatsApp number
                 "education": {
                     "has_bachelors": True,
                     "has_masters": False
@@ -260,12 +262,78 @@ class JobswishAPITester:
             print("❌ No test job available")
             return False
             
-        success, _ = self.run_test(
+        success, response = self.run_test(
             "Get Job Applicants",
             "GET",
             f"jobs/{self.test_job_id}/applicants",
             200
         )
+        
+        # Verify applicant data includes contact info
+        if success and response:
+            for applicant in response:
+                profile = applicant.get('profile', {})
+                if profile.get('email') and profile.get('phone'):
+                    print(f"✅ Contact info found: {profile.get('email')}, {profile.get('phone')}")
+                else:
+                    print(f"⚠️  Contact info missing for applicant {applicant.get('name')}")
+        
+        return success
+
+    def test_shortlist_applicant(self):
+        """Test shortlisting an applicant"""
+        if not self.test_job_id:
+            print("❌ No test job available")
+            return False
+        
+        # First get applicants to find an application ID
+        success, response = self.run_test(
+            "Get Applicants for Shortlist",
+            "GET",
+            f"jobs/{self.test_job_id}/applicants",
+            200
+        )
+        
+        if not success or not response:
+            print("❌ No applicants found to shortlist")
+            return False
+        
+        # Get the first applicant's ID
+        app_id = response[0].get('application_id')
+        if not app_id:
+            print("❌ No application ID found")
+            return False
+        
+        # Shortlist the applicant
+        success, _ = self.run_test(
+            "Shortlist Applicant",
+            "PUT",
+            f"applications/{app_id}/action",
+            200,
+            data={"action": "shortlist"}
+        )
+        
+        if success:
+            # Verify shortlisted candidates endpoint
+            success2, shortlist_response = self.run_test(
+                "Get Shortlisted Candidates",
+                "GET",
+                f"jobs/{self.test_job_id}/shortlist",
+                200
+            )
+            
+            if success2 and shortlist_response:
+                print(f"✅ Found {len(shortlist_response)} shortlisted candidates")
+                # Check if contact info is present
+                for candidate in shortlist_response:
+                    profile = candidate.get('profile', {})
+                    if profile.get('email') and profile.get('phone'):
+                        print(f"✅ Shortlisted candidate has contact info: {profile.get('email')}, {profile.get('phone')}")
+                    else:
+                        print(f"⚠️  Shortlisted candidate missing contact info")
+            
+            return success2
+        
         return success
 
     def test_reject_job(self):
@@ -396,6 +464,10 @@ def main():
     
     if not tester.test_get_job_applicants():
         print("❌ Get job applicants failed")
+        return 1
+    
+    if not tester.test_shortlist_applicant():
+        print("❌ Shortlist applicant failed")
         return 1
 
     # Print final results

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
   ArrowLeft, GraduationCap, Certificate, Briefcase, 
-  MapPin, Code, Plus, X, Upload, Check
+  MapPin, Code, Plus, X, Upload, Check, Phone, Envelope
 } from '@phosphor-icons/react';
 import { Switch } from '../components/ui/switch';
 import { toast } from 'sonner';
@@ -14,6 +14,10 @@ export default function ResumeBuilder() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Contact Info
+  const [contactEmail, setContactEmail] = useState('');
+  const [phone, setPhone] = useState('');
 
   // Education
   const [hasBachelors, setHasBachelors] = useState(false);
@@ -46,6 +50,8 @@ export default function ResumeBuilder() {
     try {
       const { data } = await axios.get(`${API}/api/profile`, { withCredentials: true });
       if (data) {
+        setContactEmail(data.email || '');
+        setPhone(data.phone || '');
         setHasBachelors(data.education?.has_bachelors || false);
         setBachelorsDocs(data.education?.bachelors_doc || null);
         setHasMasters(data.education?.has_masters || false);
@@ -113,9 +119,20 @@ export default function ResumeBuilder() {
   };
 
   const handleSave = async () => {
+    if (!contactEmail || !phone) {
+      toast.error('Please fill in your email and phone number');
+      return;
+    }
+    if (!skills.trim()) {
+      toast.error('Please add your skills for better job matching');
+      return;
+    }
+
     setSaving(true);
     try {
       await axios.put(`${API}/api/profile`, {
+        email: contactEmail,
+        phone,
         education: {
           has_bachelors: hasBachelors,
           bachelors_doc: bachelorsDocs,
@@ -166,11 +183,58 @@ export default function ResumeBuilder() {
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-medium text-[#1C2B23]">Build Resume</h1>
+          <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Build Resume</h1>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pb-32 space-y-8">
+          {/* Contact Information Section */}
+          <section>
+            <div className="flex items-center gap-2 mb-4">
+              <Phone size={24} weight="duotone" className="text-[#70AF88]" />
+              <h2 className="text-lg font-medium text-[#1C2B23]">Contact Information</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
+                  Email Address *
+                </label>
+                <div className="relative">
+                  <Envelope size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7B8E83]" />
+                  <input
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                    placeholder="your.email@example.com"
+                    className="input-field pl-12"
+                    required
+                    data-testid="contact-email-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">
+                  Phone / WhatsApp Number *
+                </label>
+                <div className="relative">
+                  <Phone size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7B8E83]" />
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 234 567 8900"
+                    className="input-field pl-12"
+                    required
+                    data-testid="phone-input"
+                  />
+                </div>
+                <p className="text-xs text-[#7B8E83] mt-1 ml-1">Include country code for WhatsApp</p>
+              </div>
+            </div>
+          </section>
+
           {/* Education Section */}
           <section>
             <div className="flex items-center gap-2 mb-4">
@@ -354,7 +418,7 @@ export default function ResumeBuilder() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Skills (required for matching)</label>
+                <label className="block text-sm font-medium text-[#1C2B23] mb-2 ml-1">Skills * (required for matching)</label>
                 <textarea
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}

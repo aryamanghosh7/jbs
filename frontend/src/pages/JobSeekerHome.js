@@ -39,7 +39,7 @@ function JobCard({ job, onSwipe }) {
 
   return (
     <motion.div
-      className="absolute inset-4 lg:inset-6 job-card cursor-grab active:cursor-grabbing"
+      className="absolute inset-4 md:inset-6 lg:inset-8 job-card cursor-grab active:cursor-grabbing"
       style={{ x, rotate }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -50,12 +50,12 @@ function JobCard({ job, onSwipe }) {
     >
       {/* Swipe overlays */}
       <motion.div className="swipe-overlay-right" style={{ opacity: rightOpacity }}>
-        <div className="w-20 h-20 rounded-full bg-[#A8D5BA] flex items-center justify-center">
+        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#A8D5BA] flex items-center justify-center">
           <Heart size={40} weight="fill" className="text-white" />
         </div>
       </motion.div>
       <motion.div className="swipe-overlay-left" style={{ opacity: leftOpacity }}>
-        <div className="w-20 h-20 rounded-full bg-[#E8A3A3] flex items-center justify-center">
+        <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#E8A3A3] flex items-center justify-center">
           <X size={40} weight="bold" className="text-white" />
         </div>
       </motion.div>
@@ -68,42 +68,42 @@ function JobCard({ job, onSwipe }) {
 
       {/* Card content */}
       <div className="h-full flex flex-col">
-        <div className="h-[35%] bg-gradient-to-br from-[#A8D5BA] to-[#70AF88] flex items-center justify-center relative overflow-hidden">
+        <div className="h-[30%] lg:h-[35%] bg-gradient-to-br from-[#A8D5BA] to-[#70AF88] flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-4 left-4 w-32 h-32 rounded-full bg-white/30" />
             <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-white/20" />
           </div>
-          <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <Briefcase size={40} weight="duotone" className="text-white lg:w-12 lg:h-12" />
+          <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+            <Briefcase size={32} weight="duotone" className="text-white md:w-10 md:h-10 lg:w-12 lg:h-12" />
           </div>
         </div>
 
-        <div className="flex-1 p-6 flex flex-col">
-          <h2 className="text-xl lg:text-2xl font-medium text-[#1C2B23] mb-1">{job.title}</h2>
-          <p className="text-[#4A5D53] font-medium mb-3">{job.company_name}</p>
+        <div className="flex-1 p-4 md:p-6 lg:p-8 flex flex-col overflow-hidden">
+          <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#1C2B23] mb-1">{job.title}</h2>
+          <p className="text-[#4A5D53] font-medium mb-2 md:mb-3">{job.company_name}</p>
 
-          <div className="flex items-center gap-4 text-sm text-[#7B8E83] mb-4">
+          <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-[#7B8E83] mb-3 md:mb-4">
             <span className="flex items-center gap-1">
-              <MapPin size={16} weight="duotone" />
+              <MapPin size={14} weight="duotone" className="md:w-4 md:h-4" />
               {job.city}, {job.state}
             </span>
             <span className="flex items-center gap-1">
-              <Money size={16} weight="duotone" />
+              <Money size={14} weight="duotone" className="md:w-4 md:h-4" />
               {formatSalary(job.salary_min, job.salary_max)}
             </span>
           </div>
 
-          <p className="text-[#4A5D53] text-sm lg:text-base flex-1 line-clamp-3 mb-4">{job.description}</p>
+          <p className="text-[#4A5D53] text-sm md:text-base flex-1 line-clamp-3 lg:line-clamp-4 mb-3 md:mb-4">{job.description}</p>
 
           <div className="flex flex-wrap gap-2">
             {job.requirements?.bachelor_required && (
-              <span className="px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Bachelor's</span>
+              <span className="px-2 md:px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Bachelor's</span>
             )}
             {job.requirements?.master_required && (
-              <span className="px-3 py-1 bg-[#D2B48C]/20 text-[#B08D5E] text-xs font-medium rounded-full">Master's</span>
+              <span className="px-2 md:px-3 py-1 bg-[#D2B48C]/20 text-[#B08D5E] text-xs font-medium rounded-full">Master's</span>
             )}
             {job.requirements?.certification_required && (
-              <span className="px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Certification</span>
+              <span className="px-2 md:px-3 py-1 bg-[#A8D5BA]/20 text-[#70AF88] text-xs font-medium rounded-full">Certification</span>
             )}
           </div>
         </div>
