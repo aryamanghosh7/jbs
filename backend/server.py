@@ -646,7 +646,7 @@ async def get_job_applicants(job_id: str, user: dict = Depends(get_current_user)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    applications = await db.applications.find({"job_id": job_id}).to_list(500)
+    applications = await db.applications.find({"job_id": job_id, "status": {"$ne": "rejected"}}).to_list(500)
     
     result = []
     for app in applications:
@@ -689,7 +689,8 @@ async def update_application_status(app_id: str, data: ApplicationAction, user: 
     if data.action == "shortlist":
         await db.applications.update_one({"_id": ObjectId(app_id)}, {"$set": {"status": "shortlisted"}})
     elif data.action == "reject":
-        await db.applications.delete_one({"_id": ObjectId(app_id)})
+        # Mark as rejected instead of deleting - this allows tracking rejection count for insights
+        await db.applications.update_one({"_id": ObjectId(app_id)}, {"$set": {"status": "rejected"}})
     else:
         raise HTTPException(status_code=400, detail="Invalid action")
     
