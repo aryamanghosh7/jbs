@@ -124,6 +124,15 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Laptop/Desktop: wider container */
+@media (min-width: 1024px) {
+  .mobile-container {
+    max-width: 32rem;
+    height: 85vh;
+    max-height: 850px;
+  }
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;

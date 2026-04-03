@@ -5,11 +5,18 @@ import axios from 'axios';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { 
   Heart, X, Briefcase, ListBullets, ClipboardText, 
-  User, MapPin, Money, Star, SignOut, CheckCircle
+  User, MapPin, Money, Star, SignOut, CheckCircle, NotePencil
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+// Check if profile is complete enough for matching
+function isProfileComplete(profile) {
+  if (!profile) return false;
+  // Must have skills filled in for matching to work
+  return profile.skills && profile.skills.trim().length > 0;
+}
 
 function JobCard({ job, onSwipe }) {
   const x = useMotionValue(0);
@@ -32,7 +39,7 @@ function JobCard({ job, onSwipe }) {
 
   return (
     <motion.div
-      className="absolute inset-4 job-card cursor-grab active:cursor-grabbing"
+      className="absolute inset-4 lg:inset-6 job-card cursor-grab active:cursor-grabbing"
       style={{ x, rotate }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
@@ -66,13 +73,13 @@ function JobCard({ job, onSwipe }) {
             <div className="absolute top-4 left-4 w-32 h-32 rounded-full bg-white/30" />
             <div className="absolute bottom-4 right-4 w-24 h-24 rounded-full bg-white/20" />
           </div>
-          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <Briefcase size={40} weight="duotone" className="text-white" />
+          <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center">
+            <Briefcase size={40} weight="duotone" className="text-white lg:w-12 lg:h-12" />
           </div>
         </div>
 
         <div className="flex-1 p-6 flex flex-col">
-          <h2 className="text-xl font-medium text-[#1C2B23] mb-1">{job.title}</h2>
+          <h2 className="text-xl lg:text-2xl font-medium text-[#1C2B23] mb-1">{job.title}</h2>
           <p className="text-[#4A5D53] font-medium mb-3">{job.company_name}</p>
 
           <div className="flex items-center gap-4 text-sm text-[#7B8E83] mb-4">
@@ -86,7 +93,7 @@ function JobCard({ job, onSwipe }) {
             </span>
           </div>
 
-          <p className="text-[#4A5D53] text-sm flex-1 line-clamp-3 mb-4">{job.description}</p>
+          <p className="text-[#4A5D53] text-sm lg:text-base flex-1 line-clamp-3 mb-4">{job.description}</p>
 
           <div className="flex flex-wrap gap-2">
             {job.requirements?.bachelor_required && (
@@ -105,7 +112,7 @@ function JobCard({ job, onSwipe }) {
   );
 }
 
-function AllJobsCard({ job, onApply }) {
+function AllJobsCard({ job, onApply, applied }) {
   const formatSalary = (min, max) => {
     const format = (n) => n >= 1000 ? `${(n/1000).toFixed(0)}k` : n;
     return `$${format(min)} - $${format(max)}`;
@@ -134,13 +141,20 @@ function AllJobsCard({ job, onApply }) {
         </span>
       </div>
       <p className="text-sm text-[#4A5D53] line-clamp-2 mb-4">{job.description}</p>
-      <button
-        onClick={() => onApply(job.id)}
-        className="btn-primary py-3 text-sm"
-        data-testid="apply-btn"
-      >
-        Apply Now
-      </button>
+      {applied ? (
+        <div className="py-3 bg-[#A8D5BA]/20 text-[#70AF88] rounded-full font-medium text-center text-sm flex items-center justify-center gap-2">
+          <CheckCircle size={16} weight="bold" />
+          Applied
+        </div>
+      ) : (
+        <button
+          onClick={() => onApply(job.id)}
+          className="btn-primary py-3 text-sm"
+          data-testid="apply-btn"
+        >
+          Apply Now
+        </button>
+      )}
     </div>
   );
 }
@@ -177,11 +191,30 @@ export default function JobSeekerHome() {
   const [allJobs, setAllJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [profile, setProfile] = useState(null);
+  const [profileChecked, setProfileChecked] = useState(false);
+  const [appliedJobIds, setAppliedJobIds] = useState(new Set());
 
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+    checkProfile();
+  }, []);
+
+  useEffect(() => {
+    if (profileChecked && isProfileComplete(profile)) {
+      fetchData();
+    }
+  }, [activeTab, profileChecked, profile]);
+
+  const checkProfile = async () => {
+    try {
+      const { data } = await axios.get(`${API}/api/profile`, { withCredentials: true });
+      setProfile(data);
+    } catch (e) {
+      console.error(e);
+    }
+    setProfileChecked(true);
+    setLoading(false);
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -189,10 +222,13 @@ export default function JobSeekerHome() {
       if (activeTab === 'matches') {
         const { data } = await axios.get(`${API}/api/matches`, { withCredentials: true });
         setMatches(data);
-        setCurrentIndex(0);
       } else if (activeTab === 'all') {
-        const { data } = await axios.get(`${API}/api/alljobs`, { withCredentials: true });
-        setAllJobs(data);
+        const [jobsRes, appsRes] = await Promise.all([
+          axios.get(`${API}/api/alljobs`, { withCredentials: true }),
+          axios.get(`${API}/api/applications`, { withCredentials: true })
+        ]);
+        setAllJobs(jobsRes.data);
+        setAppliedJobIds(new Set(appsRes.data.map(a => a.job_id)));
       } else {
         const { data } = await axios.get(`${API}/api/applications`, { withCredentials: true });
         setApplications(data);
@@ -205,17 +241,19 @@ export default function JobSeekerHome() {
   };
 
   const handleSwipe = async (direction) => {
-    const job = matches[currentIndex];
+    const job = matches[0];
     if (!job) return;
 
     try {
       if (direction === 'right') {
         await axios.post(`${API}/api/applications/${job.id}`, {}, { withCredentials: true });
         toast.success('Applied successfully!');
+        setAppliedJobIds(prev => new Set([...prev, job.id]));
       } else {
         await axios.post(`${API}/api/reject/${job.id}`, {}, { withCredentials: true });
       }
-      setCurrentIndex(prev => prev + 1);
+      // Remove the job from matches immediately
+      setMatches(prev => prev.slice(1));
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Action failed');
     }
@@ -225,13 +263,66 @@ export default function JobSeekerHome() {
     try {
       await axios.post(`${API}/api/applications/${jobId}`, {}, { withCredentials: true });
       toast.success('Applied successfully!');
-      fetchData();
+      setAppliedJobIds(prev => new Set([...prev, jobId]));
     } catch (e) {
       toast.error(e.response?.data?.detail || 'Failed to apply');
     }
   };
 
-  const currentJob = matches[currentIndex];
+  const currentJob = matches[0];
+
+  // Show loading while checking profile
+  if (!profileChecked) {
+    return (
+      <div className="app-wrapper">
+        <div className="mobile-container flex items-center justify-center">
+          <div className="spinner" />
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile completion prompt if profile is incomplete
+  if (!isProfileComplete(profile)) {
+    return (
+      <div className="app-wrapper">
+        <div className="mobile-container">
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
+            <div>
+              <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
+              <p className="text-sm text-[#7B8E83]">Complete your profile</p>
+            </div>
+            <button
+              onClick={logout}
+              className="w-10 h-10 rounded-full bg-[#FAFAFA] flex items-center justify-center text-[#4A5D53] hover:bg-[#E8A3A3]/20 transition-colors"
+              data-testid="logout-btn"
+            >
+              <SignOut size={20} />
+            </button>
+          </div>
+
+          {/* Profile completion prompt */}
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-6">
+              <NotePencil size={48} weight="duotone" className="text-[#70AF88] lg:w-16 lg:h-16" />
+            </div>
+            <h2 className="text-2xl lg:text-3xl font-medium text-[#1C2B23] mb-3">Build Your Resume</h2>
+            <p className="text-[#7B8E83] mb-8 max-w-sm lg:text-lg">
+              Complete your profile with skills and experience to start seeing personalized job matches.
+            </p>
+            <button
+              onClick={() => navigate('/resume')}
+              className="btn-primary max-w-xs"
+              data-testid="complete-profile-btn"
+            >
+              Complete Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-wrapper">
@@ -239,7 +330,7 @@ export default function JobSeekerHome() {
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-[#E8E6DF]">
           <div>
-            <h1 className="text-xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
+            <h1 className="text-xl lg:text-2xl font-medium text-[#1C2B23]">Hi, {user?.name?.split(' ')[0]}</h1>
             <p className="text-sm text-[#7B8E83]">Find your dream job</p>
           </div>
           <div className="flex gap-2">
@@ -268,7 +359,7 @@ export default function JobSeekerHome() {
             </div>
           ) : activeTab === 'matches' ? (
             <div className="h-full relative">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {currentJob && (
                   <JobCard key={currentJob.id} job={currentJob} onSwipe={handleSwipe} />
                 )}
@@ -276,10 +367,10 @@ export default function JobSeekerHome() {
               
               {!currentJob && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                  <div className="w-20 h-20 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
-                    <CheckCircle size={40} weight="duotone" className="text-[#70AF88]" />
+                  <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full bg-[#A8D5BA]/20 flex items-center justify-center mb-4">
+                    <CheckCircle size={40} weight="duotone" className="text-[#70AF88] lg:w-12 lg:h-12" />
                   </div>
-                  <h3 className="text-lg font-medium text-[#1C2B23] mb-2">All caught up!</h3>
+                  <h3 className="text-lg lg:text-xl font-medium text-[#1C2B23] mb-2">All caught up!</h3>
                   <p className="text-[#7B8E83]">Check back later for new matches</p>
                 </div>
               )}
@@ -289,14 +380,14 @@ export default function JobSeekerHome() {
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-6">
                   <button
                     onClick={() => handleSwipe('left')}
-                    className="w-16 h-16 rounded-full bg-white shadow-lg flex items-center justify-center text-[#E8A3A3] active:scale-95 transition-transform"
+                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-[#E8A3A3] active:scale-95 transition-transform hover:shadow-xl"
                     data-testid="reject-btn"
                   >
                     <X size={28} weight="bold" />
                   </button>
                   <button
                     onClick={() => handleSwipe('right')}
-                    className="w-16 h-16 rounded-full bg-[#A8D5BA] shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform"
+                    className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#A8D5BA] shadow-lg flex items-center justify-center text-white active:scale-95 transition-transform hover:shadow-xl"
                     data-testid="apply-swipe-btn"
                   >
                     <Heart size={28} weight="fill" />
@@ -312,7 +403,12 @@ export default function JobSeekerHome() {
                 </div>
               ) : (
                 allJobs.map(job => (
-                  <AllJobsCard key={job.id} job={job} onApply={handleApply} />
+                  <AllJobsCard 
+                    key={job.id} 
+                    job={job} 
+                    onApply={handleApply} 
+                    applied={appliedJobIds.has(job.id)}
+                  />
                 ))
               )}
             </div>
