@@ -1,18 +1,20 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/SupabaseAuthContext";
 import { Toaster } from "sonner";
 
-// Pages
-import AuthPage from "./pages/AuthPage";
-import JobSeekerHome from "./pages/JobSeekerHome";
+// New Pages
+import NewAuthPage from "./pages/NewAuthPage";
+import NewApplicantDashboard from "./pages/NewApplicantDashboard";
+import NewResumeBuilder from "./pages/NewResumeBuilder";
+
+// Old Pages (keep for recruiter temporarily)
 import RecruiterHome from "./pages/RecruiterHome";
-import ResumeBuilder from "./pages/ResumeBuilder";
 import PostJob from "./pages/PostJob";
 import JobApplicants from "./pages/JobApplicants";
 
 function ProtectedRoute({ children, allowedRoles }) {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
@@ -28,7 +30,7 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
     return <Navigate to="/" replace />;
   }
 
@@ -36,14 +38,23 @@ function ProtectedRoute({ children, allowedRoles }) {
 }
 
 function HomeRouter() {
-  const { user } = useAuth();
-  
+  const { user, profile } = useAuth();
+
   if (!user) return <Navigate to="/auth" replace />;
-  
-  if (user.role === 'job_seeker') {
-    return <JobSeekerHome />;
+  if (!profile) {
+    return (
+      <div className="app-wrapper">
+        <div className="mobile-container flex items-center justify-center">
+          <div className="spinner" />
+        </div>
+      </div>
+    );
   }
-  
+
+  if (profile.role === 'applicant') {
+    return <NewApplicantDashboard />;
+  }
+
   return <RecruiterHome />;
 }
 
@@ -53,11 +64,15 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-center" richColors />
         <Routes>
-          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth" element={<NewAuthPage />} />
           <Route path="/" element={<ProtectedRoute><HomeRouter /></ProtectedRoute>} />
-          <Route path="/resume" element={<ProtectedRoute allowedRoles={['job_seeker']}><ResumeBuilder /></ProtectedRoute>} />
+          }
+          <Route path="/resume" element={<ProtectedRoute allowedRoles={['applicant']}><NewResumeBuilder /></ProtectedRoute>} />
+          }
           <Route path="/post-job" element={<ProtectedRoute allowedRoles={['recruiter']}><PostJob /></ProtectedRoute>} />
+          }
           <Route path="/job/:jobId/applicants" element={<ProtectedRoute allowedRoles={['recruiter']}><JobApplicants /></ProtectedRoute>} />
+          }
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

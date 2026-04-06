@@ -5,33 +5,33 @@
 @tailwind utilities;
 
 :root {
-  --primary: #2D5A3D;
-  --primary-hover: #244A32;
-  --primary-active: #1B3926;
+  --primary: #10B981;
+  --primary-hover: #059669;
+  --primary-active: #047857;
   --primary-foreground: #FFFFFF;
-  
-  --secondary: #D2B48C;
-  --secondary-hover: #C2A175;
-  --secondary-active: #B08D5E;
-  --secondary-foreground: #2D1D09;
-  
-  --background-app: #FDF6E9;
-  --background-container: #FFFEF9;
+
+  --secondary: #FFFFFF;
+  --secondary-hover: #F9FAFB;
+  --secondary-active: #F3F4F6;
+  --secondary-foreground: #111827;
+
+  --background-app: #FFFFFF;
+  --background-container: #FFFFFF;
   --background-card: #FFFFFF;
-  --background-card-alt: #FDF8F0;
-  
-  --text-primary: #1C2B23;
-  --text-secondary: #4A5D53;
-  --text-muted: #7B8E83;
-  
-  --border-default: #E8E6DF;
-  --border-focus: #2D5A3D;
-  
-  --status-match-high: #2D5A3D;
-  --status-match-medium: #D2B48C;
-  --status-reject: #E8A3A3;
-  
-  --toggle-active: #1C1C1C;
+  --background-card-alt: #F9FAFB;
+
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+
+  --border-default: #E5E7EB;
+  --border-focus: #10B981;
+
+  --status-match-high: #10B981;
+  --status-match-medium: #34D399;
+  --status-reject: #EF4444;
+
+  --toggle-active: #10B981;
 }
 
 * {
@@ -55,25 +55,25 @@ h1, h2, h3, h4, h5, h6 {
 
 @layer base {
   :root {
-    --background: 45 30% 96%;
-    --foreground: 142 25% 14%;
+    --background: 0 0% 100%;
+    --foreground: 220 13% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 142 25% 14%;
+    --card-foreground: 220 13% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 142 25% 14%;
-    --primary: 142 45% 32%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 32 42% 69%;
-    --secondary-foreground: 32 68% 11%;
-    --muted: 40 15% 95%;
-    --muted-foreground: 142 14% 52%;
-    --accent: 40 15% 95%;
-    --accent-foreground: 142 25% 14%;
-    --destructive: 0 48% 78%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 40 12% 90%;
-    --input: 40 12% 90%;
-    --ring: 142 45% 32%;
+    --popover-foreground: 220 13% 9%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 220 13% 9%;
+    --muted: 220 13% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 220 13% 96%;
+    --accent-foreground: 220 13% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 76% 36%;
     --radius: 1rem;
   }
 }
@@ -171,7 +171,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .input-field:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(168, 213, 186, 0.2);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 /* Button styles */
@@ -245,7 +245,7 @@ h1, h2, h3, h4, h5, h6 {
 .job-card {
   background: white;
   border-radius: 1.5rem;
-  box-shadow: 0 8px 30px rgba(28, 43, 35, 0.08);
+  box-shadow: 0 8px 30px rgba(17, 24, 39, 0.08);
   border: 1px solid var(--border-default);
   overflow: hidden;
 }
@@ -280,7 +280,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-item.active {
-  color: #2D5A3D;
+  color: #10B981;
   transform: scale(1.1);
 }
 
@@ -301,14 +301,14 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.875rem;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  color: #2D5A3D;
+  color: #10B981;
 }
 
 /* Swipe overlays */
 .swipe-overlay-right {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(45, 90, 61, 0.3), rgba(45, 90, 61, 0.1));
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.1));
   border-radius: 1.5rem;
   display: flex;
   align-items: center;
@@ -319,7 +319,7 @@ h1, h2, h3, h4, h5, h6 {
 .swipe-overlay-left {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(199, 80, 80, 0.3), rgba(199, 80, 80, 0.1));
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
   border-radius: 1.5rem;
   display: flex;
   align-items: center;
@@ -334,12 +334,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .status-shortlisted {
-  background-color: #2D5A3D;
+  background-color: #10B981;
   color: white;
 }
 
 .status-rejected {
-  background-color: #C75050;
+  background-color: #EF4444;
   color: white;
 }
 
